@@ -93,7 +93,7 @@ class Image4SurveyTests(unittest.TestCase):
         self.assertFalse(result["signature_verified"])
 
     def test_compression_sequence_and_keybag_candidate_are_metadata_only(self):
-        compression = der(0x30, der(0x02, b"\\x01") + der(0x02, b"\\x00\\x20\\x00"))
+        compression = der(0x30, der(0x02, b"\x01") + der(0x02, b"\x00\x20\x00"))
         keybag = der(0x04, b"not-a-real-keybag")
         raw = der(0x30, ia5("IM4P") + ia5("ibot") + ia5("iBoot-test")
                   + der(0x04, b"bvx2" + b"x" * 100)
@@ -119,7 +119,7 @@ class Image4SurveyTests(unittest.TestCase):
         self.assertEqual(result["encryption_status"], "NOT_DETERMINED")
 
     def test_unknown_compression_id_is_not_named(self):
-        record = der(0x30, der(0x02, b"\\x09") + der(0x02, b"\\x01"))
+        record = der(0x30, der(0x02, b"\x09") + der(0x02, b"\x01"))
         raw = der(0x30, ia5("IM4P") + ia5("ibot") + ia5("x")
                   + der(0x04, b"opaque") + record)
         info = parse_image4_container(raw)
@@ -128,7 +128,7 @@ class Image4SurveyTests(unittest.TestCase):
 
     def test_malformed_optional_der_rejected(self):
         raw = der(0x30, ia5("IM4P") + ia5("ibot") + ia5("x")
-                  + der(0x04, b"payload") + b"\\x04\\x82\\x01")
+                  + der(0x04, b"payload") + b"\x04\x82\x01")
         with self.assertRaises(Image4Error):
             parse_image4_container(raw)
 
