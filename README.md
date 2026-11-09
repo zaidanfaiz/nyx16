@@ -91,6 +91,20 @@ Run locally:
 
 Read the [patch case study, source links and limitations](docs/J4B_WEBKIT_PATCH_STUDY.md). Nyx16Lab remains **one on-device Run Full Diagnostics button** for J1–J3; J4B does not change the app.
 
+## J4C — Four upstream fixed WebKit patch mechanisms
+
+A [source-linked patch comparison](docs/J4C_WEBKIT_PATCH_COMPARISON.md) now covers four **RESOLVED FIXED** WebKit issues: [304140](https://bugs.webkit.org/show_bug.cgi?id=304140) (libxml2 signed length boundary), [289523](https://bugs.webkit.org/show_bug.cgi?id=289523) (32-bit WebAssembly array allocation arithmetic), [297624](https://bugs.webkit.org/show_bug.cgi?id=297624) (SVG convolution area multiplication), and [308713](https://bugs.webkit.org/show_bug.cgi?id=308713) (IndexedDB string key bounds-check arithmetic). The case [manifest](research/webkit_fixed_patch_cases.json) records fixed revisions, root causes, upstream mitigations, and device-specific **limits**.
+
+Generate reproducible **Markdown + JSON** evidence on the Mac (no iPhone needed):
+
+```bash
+python3 tools/j4c_webkit_patch_compare.py \
+  --json-out reports/j4c_webkit_patches.json \
+  --md-out reports/j4c_webkit_patches.md
+```
+
+This is **documentary comparative research**, not a reproduction of any live WebKit bug, a CVE-to-iOS mapping, sandbox bypass or jailbreak. J1–J3 remain on the existing single-run iPhone dashboard.
+
 ## Running existing diagnostic tools on a Mac
 
 With an iPhone connected and trusted in normal mode:
