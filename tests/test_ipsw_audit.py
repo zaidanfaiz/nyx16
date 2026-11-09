@@ -76,7 +76,7 @@ class IPSWAuditTests(unittest.TestCase):
         with self.assertRaises(IPSWError): inspect_ipsw(self.ipsw)
 
     def test_chip_ids(self):
-        self.assertEqual([c.cpid for c in CHIPS], [0x8020,0x8030,0x8101,0x8110,0x8120])
-        self.assertEqual(list_chips()[-1]["family"], "A16")
+        self.assertEqual([c.cpid for c in CHIPS], [0x8020,0x8030,0x8101,0x8110,0x8120,0x8130])
+        self.assertEqual(list_chips()[-1]["family"], "A17 Pro")
 
 if __name__ == "__main__": unittest.main()
