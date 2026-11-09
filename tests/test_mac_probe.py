@@ -81,9 +81,30 @@ class MacProbeTests(unittest.TestCase):
         self.assertEqual(report["device_identification"]["device"], "iPhone 11")
         self.assertEqual(report["device_identification"]["chip_family"], "A13")
         self.assertEqual(report["device_identification"]["board_match"], "MATCH")
-        self.assertEqual(report["version_relationship"], "TARGET_OLDER_THAN_INSTALLED")
+        self.assertEqual(report["version_relationship"], "NOT_REQUESTED")
+        self.assertIsNone(report["target_ios_version"])
+        self.assertEqual(report["research_objective"], "FULL_JAILBREAK_A12_A17")
+        self.assertEqual(report["jailbreak_status"], "NOT_DEMONSTRATED")
+        self.assertEqual(report["privileged_device_file_access"], "NOT_DEMONSTRATED")
+        self.assertEqual(report["dfu_code_execution"], "NOT_DEMONSTRATED")
+
         self.assertNotIn("SECRET_UDID", json.dumps(report))
         self.assertFalse(report["device_modified"])
+
+    @patch("mac_probe.platform.system", return_value="Darwin")
+    @patch("mac_probe.shutil.which", return_value="/opt/local/bin/tool")
+    def test_legacy_version_comparison_is_opt_in(self, which, system):
+        def execute(args):
+            if args[:2] == ["idevice_id", "-l"]:
+                return "REDACTED"
+            return {
+                "ProductType": "iPhone12,1", "ProductVersion": "27.2",
+                "HardwareModel": "N104AP",
+            }.get(args[-1])
+        with patch("mac_probe.run_command", side_effect=execute):
+            report = mac_probe.probe(target_ios="26.1")
+        self.assertEqual(report["version_relationship"], "TARGET_OLDER_THAN_INSTALLED")
+        self.assertEqual(report["jailbreak_status"], "NOT_DEMONSTRATED")
 
     @patch("mac_probe.platform.system", return_value="Darwin")
     @patch("mac_probe.shutil.which", return_value="/opt/local/bin/tool")
