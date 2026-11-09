@@ -1,0 +1,56 @@
+name: J4B WebKit Public Patch Study
+
+on:
+  pull_request:
+    paths:
+      - 'tools/j4b_webkit_boundary_study.py'
+      - 'tests/test_j4b_webkit_boundary_study.py'
+      - 'docs/J4B_WEBKIT_PATCH_STUDY.md'
+      - '.github/workflows/j4b-webkit-patch.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/j4b_webkit_boundary_study.py'
+      - 'tests/test_j4b_webkit_boundary_study.py'
+      - '.github/workflows/j4b-webkit-patch.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  patched-boundary-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Run 9-case signed integer boundary regressions
+        run: |
+          python3 -m unittest discover -s tests -p 'test_j4b_webkit_boundary_study.py' -v
+          python3 tools/j4b_webkit_boundary_study.py --out reports/j4b_webkit_boundary.json
+      - name: Upload JSON evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: j4b-webkit-patch-model-evidence
+          path: reports/j4b_webkit_boundary.json
+          if-no-files-found: error
+      - name: Write bounded conclusions
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          with open("reports/j4b_webkit_boundary.json", encoding="utf-8") as f:
+              d = json.load(f)
+          print("## J4B — Public fixed WebKit patch study")
+          print(f"- Upstream WebKit bug: {d['public_upstream_bug']}")
+          print(f"- Logical length boundary cases: {d['total_cases']}")
+          print(f"- Matched expectations: {d['passed_cases']}")
+          print(f"- Failures in owned model: {d['failed_cases']}")
+          print("- Actual WebKit or iPhone execution: **NO**")
+          print("- iOS 27.2 vulnerability: **NOT ESTABLISHED**")
+          print("- Jailbreak: **NOT DEMONSTRATED**")
+          PY
