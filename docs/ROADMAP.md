@@ -20,6 +20,12 @@ A jailbreak is version-specific. Evidence for one model/build must never be gene
 
 Gates describe requirements, not a promised exploit chain or a command recipe.
 
+## Observed on-device baseline and current J4 activity (9 Nov 2026)
+
+The operator reported all three Nyx16Lab checks as PASS on the physical **iPhone 11 (A13) / iOS 27.2**, with **UID/EUID 501/501**. J1 established app-owned file operations, J2 recorded app-owned directory access and Data Protection attribute behavior, and J3 recognized only the app's own ARM64 Mach-O header and a deterministic compiled code self-test. These observations **do not** satisfy J4's privilege-boundary-crossing gate.
+
+**J4 investigation infrastructure started:** the offline, seeded [owned-parser robustness harness](J4_RESEARCH.md) is available for learning to reproduce malformed-input failures. It targets only Nyx16's own reference parser; **an iOS vulnerability, a sandbox escape and a kernel exploit are not demonstrated**. No new J4 button was added to the iPhone app.
+
 ## Workstreams
 
 ### A. Device-first research (highest priority)
