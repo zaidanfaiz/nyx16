@@ -53,3 +53,18 @@ The macOS tool invokes \`/usr/bin/codesign -d --entitlements :-\` to inspect **t
 - [OWASP MASTG: iOS File System APIs](https://mas.owasp.org/MASTG/knowledge/ios/MASVS-STORAGE/MASTG-KNOW-0091/)
 
 This is an *observation baseline* in the [Nyx16 security research plan](../../docs/JAILBREAK_RESEARCH.md), not an exploit milestone.
+
+
+## Copy directly from iPhone to Mac (Universal Clipboard)
+
+After rebuilding and installing Nyx16Lab, tap **Run J2 Diagnostics** then **Copy Report**. The button copies the J2 report to the **iPhone clipboard**. If the earlier J1 test also ran in the current app session, its report is appended. Placeholder text is excluded. The app does not upload reports anywhere.
+
+On the Mac, immediately place the cursor in Terminal, TextEdit, or Notes and press **Command-V (⌘V)**. For cross-device paste, Apple's **Universal Clipboard** needs both devices:
+- Signed in to the **same Apple Account**, within about 10 metres of each other
+- Wi-Fi, Bluetooth and **Handoff** enabled on both
+- iPhone: **Settings → General → AirPlay & Continuity → Handoff**
+- Mac: **System Settings → General → AirDrop & Handoff → Allow Handoff between this Mac and your iCloud devices**
+
+If Apple Accounts differ, Universal Clipboard does not transfer the text. Tap **AirDrop / Share** next to Copy Report and choose your nearby Mac from AirDrop instead. Neither copying nor sharing runs a jailbreak, kernel payload, or remote command. Review the diagnostic text before sharing it.
+
+Apple reference: [Use Universal Clipboard](https://support.apple.com/en-us/102430).
