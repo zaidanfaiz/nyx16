@@ -1,0 +1,56 @@
+name: J4C Fixed WebKit Patch Comparison
+
+on:
+  pull_request:
+    paths:
+      - 'research/webkit_fixed_patch_cases.json'
+      - 'tools/j4c_webkit_patch_compare.py'
+      - 'tests/test_j4c_webkit_patch_compare.py'
+      - 'docs/J4C_WEBKIT_PATCH_COMPARISON.md'
+      - '.github/workflows/j4c-webkit-patch-compare.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'research/webkit_fixed_patch_cases.json'
+      - 'tools/j4c_webkit_patch_compare.py'
+      - 'tests/test_j4c_webkit_patch_compare.py'
+      - '.github/workflows/j4c-webkit-patch-compare.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evidence-comparison:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify upstream case metadata and safety limits
+        run: python3 -m unittest discover -s tests -p 'test_j4c_webkit_patch_compare.py' -v
+      - name: Render J4C comparison without external calls
+        run: |
+          python3 tools/j4c_webkit_patch_compare.py \
+            --json-out reports/j4c_webkit_patches.json \
+            --md-out reports/j4c_webkit_patches.md
+      - name: Upload documentary evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: j4c-webkit-fixed-patch-comparison
+          path: |
+            reports/j4c_webkit_patches.json
+            reports/j4c_webkit_patches.md
+          if-no-files-found: error
+      - name: Scope statement
+        run: |
+          echo "## J4C: WebKit fixed-patch comparison" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Four public fixed WebKit upstream bugs compared" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Generated reproducible JSON and Markdown with source URLs" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Actual WebKit binaries or iPhone tested: **NO**" >> "$GITHUB_STEP_SUMMARY"
+          echo "- iOS 27.2 vulnerability: **NOT ESTABLISHED**" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Jailbreak: **NOT DEMONSTRATED**" >> "$GITHUB_STEP_SUMMARY"
