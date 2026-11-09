@@ -122,6 +122,13 @@ jobs:
           print("## IM4P shallow static header results")
           for rec in image4["rows"]:
               print(f"- {rec['component']}: {rec['current_image4_type']} vs {rec['target_image4_type']} — {rec['comparison']}")
+          print("## Compression and potential keybag fields (format hints only)")
+          for rec in image4["rows"]:
+              c, t = rec["current_compression_record"], rec["target_compression_record"]
+              print(f"- {rec['component']}: current payload hint {rec['current_payload_prefix_hint']}; target hint {rec['target_payload_prefix_hint']}")
+              print(f"  - Current compression record: {c['status']}; target: {t['status']}")
+              print(f"  - Potential keybag field: current {rec['current_keybag_candidate_present']}; target {rec['target_keybag_candidate_present']}")
+          print("- Encryption status: **NOT DETERMINED**. Neither signatures nor keys verified.")
           print("- Apple signatures verified: **NO**; no firmware was flashed or executed")
           PY
       - name: Upload report (not IPSW or plist files)
