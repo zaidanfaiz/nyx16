@@ -1,0 +1,55 @@
+{
+  "reviewed_at_utc": "2026-11-09",
+  "notes": "This is a curated citation list. Statements are vendor-documented design properties, not live tests of a particular device or evidence of exploitability.",
+  "claims": [
+    {
+      "id": "bootrom_iboot_trust_chain",
+      "scope": "A12–A16 application processors",
+      "statement": "Apple documents a hardware Boot ROM root of trust that verifies the Apple signature on the iBoot bootloader before execution.",
+      "source": "https://support.apple.com/en-ca/guide/security/secb3000f149/web",
+      "type": "VENDOR_DOCUMENTATION"
+    },
+    {
+      "id": "iboot_kernel_verification",
+      "scope": "A12–A16 application processors",
+      "statement": "Apple documents that iBoot verifies the iOS or iPadOS kernel before executing it.",
+      "source": "https://support.apple.com/en-ca/guide/security/secb3000f149/web",
+      "type": "VENDOR_DOCUMENTATION"
+    },
+    {
+      "id": "sep_secure_boot",
+      "scope": "A12–A16 Secure Enclave",
+      "statement": "Apple documents separate Secure Enclave Boot ROM verification of the sepOS image hash and signature.",
+      "source": "https://support.apple.com/en-gb/guide/security/sec59b0b31ff/web",
+      "type": "VENDOR_DOCUMENTATION"
+    },
+    {
+      "id": "sep_boot_monitor",
+      "scope": "A13–A16 Secure Enclave",
+      "statement": "Apple documents a Secure Enclave Boot Monitor on A13 or later SoCs which strengthens measurement of the running sepOS boot chain.",
+      "source": "https://support.apple.com/en-gb/guide/security/sec59b0b31ff/web",
+      "type": "VENDOR_DOCUMENTATION"
+    },
+    {
+      "id": "cellular_baseband_boot",
+      "scope": "A12–A16 cellular iPhone models",
+      "statement": "Apple documents that cellular baseband firmware undergoes a separate secure boot using software signatures and keys verified by its processor.",
+      "source": "https://support.apple.com/en-ca/guide/security/secb3000f149/web",
+      "type": "VENDOR_DOCUMENTATION"
+    },
+    {
+      "id": "dfu_boot_progress_register",
+      "scope": "A12–A16 SoCs",
+      "statement": "Apple documents that Boot ROM sets the Boot Progress Register in DFU mode on A12 or later SoCs; this is part of Secure Enclave data-access restrictions.",
+      "source": "https://support.apple.com/en-ca/guide/security/secb3000f149/web",
+      "type": "VENDOR_DOCUMENTATION"
+    },
+    {
+      "id": "designed_rollback_protection",
+      "scope": "iPhone software update system; contextual for A12–A16",
+      "statement": "Apple describes the software update system as designed to prevent downgrade attacks. This does not prove individual build signing status.",
+      "source": "https://support.apple.com/en-gb/guide/security/sec114e4db04/web",
+      "type": "VENDOR_DOCUMENTATION"
+    }
+  ]
+}
