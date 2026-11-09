@@ -70,7 +70,7 @@ final class LabViewModel: ObservableObject {
     /// Does not query protected paths, other app containers, DFU or kernel interfaces.
     func runJ2Diagnostics() {
         let manager = FileManager.default
-        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true).standardizedFileURL.path
+        let home = URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true).resolvingSymlinksInPath().standardizedFileURL.path
         let documents = manager.urls(for: .documentDirectory, in: .userDomainMask).first
         let library = manager.urls(for: .libraryDirectory, in: .userDomainMask).first
         let caches = manager.urls(for: .cachesDirectory, in: .userDomainMask).first
@@ -98,7 +98,7 @@ final class LabViewModel: ObservableObject {
                 lines.append("\(name): UNAVAILABLE")
                 continue
             }
-            let normalized = location.standardizedFileURL.path
+            let normalized = location.resolvingSymlinksInPath().standardizedFileURL.path
             guard normalized.hasPrefix(home + "/") else {
                 lines.append("\(name): NOT WITHIN OWN CONTAINER")
                 continue
@@ -119,7 +119,7 @@ final class LabViewModel: ObservableObject {
             "Protected data currently available: \(UIApplication.shared.isProtectedDataAvailable ? "YES" : "NO")"
         ]
 
-        if let documents, documents.standardizedFileURL.path.hasPrefix(home + "/") {
+        if let documents, documents.resolvingSymlinksInPath().standardizedFileURL.path.hasPrefix(home + "/") {
             let testFile = documents.appendingPathComponent("nyx16-j2-protection-test.txt")
             // Refuse to overwrite a preexisting user/application file.
             guard !manager.fileExists(atPath: testFile.path) else {
