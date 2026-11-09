@@ -84,6 +84,78 @@ def description_field(data, offset, bound):
     }, after
 
 
+def _nonnegative_der_int(data, offset, limit):
+    """Read one bounded positive DER INTEGER, rejecting negative/nonminimal forms."""
+    tag, begin, end, after = tlv(data, offset, limit)
+    payload = data[begin:end]
+    if tag != 0x02 or not 1 <= len(payload) <= 8:
+        raise Image4Error("Invalid bounded compression integer")
+    if payload[0] & 0x80:
+        raise Image4Error("Negative compression integer")
+    if len(payload) > 1 and payload[0] == 0 and not (payload[1] & 0x80):
+        raise Image4Error("Nonminimal compression integer")
+    return int.from_bytes(payload, "big", signed=False), after
+
+
+def _compression_sequence(data, begin, end):
+    """Parse only exact { algorithm INTEGER, uncompressedSize INTEGER } sequence."""
+    try:
+        algorithm, at = _nonnegative_der_int(data, begin, end)
+        unpacked, at = _nonnegative_der_int(data, at, end)
+    except Image4Error:
+        return {"status": "UNRECOGNIZED_SEQUENCE"}
+    if at != end:
+        return {"status": "UNRECOGNIZED_SEQUENCE"}
+    names = {0: "LZSS", 1: "LZFSE"}
+    return {
+        "status": "DECLARED_IN_DER",
+        "algorithm_id": algorithm,
+        "algorithm_label": names.get(algorithm, "UNKNOWN_ALGORITHM"),
+        "declared_uncompressed_bytes": unpacked,
+    }
+
+
+def _payload_signature(data, start, end):
+    """A 4–8 byte prefix is a weak format hint, never a decryption verdict."""
+    prefix = data[start:min(end, start + 8)]
+    if prefix.startswith(b"complzss"):
+        return "LZSS_SIGNATURE_ONLY"
+    if prefix.startswith(b"bvx2"):
+        return "LZFSE_BVX2_SIGNATURE_ONLY"
+    if prefix.startswith(b"bvxn"):
+        return "LZFSE_BVXN_SIGNATURE_ONLY"
+    return "UNRECOGNIZED"
+
+
+def _optional_metadata(data, position, limit, payload_start, payload_end):
+    # Do not read or disclose keybag contents, even when present.
+    tags = []
+    compression = {"status": "NOT_DECLARED"}
+    candidate_keybags = 0
+    for _ in range(16):
+        if position >= limit:
+            break
+        tag, begin, end, position = tlv(data, position, limit)
+        tags.append(f"0x{tag:02x}")
+        if tag == 0x30 and compression["status"] == "NOT_DECLARED":
+            compression = _compression_sequence(data, begin, end)
+        elif tag == 0x04:
+            candidate_keybags += 1
+    if position != limit:
+        raise Image4Error("Too many optional IM4P fields")
+    return {
+        "payload_prefix_hint": _payload_signature(data, payload_start, payload_end),
+        "compression_record": compression,
+        "optional_der_tag_sequence": tags,
+        "optional_octet_fields_count": candidate_keybags,
+        "keybag_candidate_present": bool(candidate_keybags),
+        "encryption_status": "NOT_DETERMINED",
+        "decompression_performed": False,
+        "decryption_performed": False,
+        "crypto_key_material_exported": False,
+    }
+
+
 def parse_image4_container(data):
     """Read DER envelope and payload LENGTH only, never parse its contents."""
     if not isinstance(data, bytes) or not 1 <= len(data) <= COMPONENT_LIMIT:
@@ -110,11 +182,13 @@ def parse_image4_container(data):
     tag, start, payload_end, at = tlv(data, at, bound)
     if tag != 0x04:
         raise Image4Error("IM4P payload field is not OCTET STRING")
+    extra = _optional_metadata(data, at, bound, start, payload_end)
     return {
         "outer_magic": outer_magic,
         "type_code": payload_type,
         **description_metadata,
         "payload_octets_declared": payload_end - start,
+        **extra,
         "optional_der_fields_present": at < bound,
         "trailing_bytes_after_der": len(data) - after,
         "structure_parse_status": "SHALLOW_DER_ENVELOPE_VALID",
@@ -257,6 +331,13 @@ def compare_surveys(current, target):
             "current_image4_type": a.get("type_code", "UNKNOWN"),
             "target_image4_type": b.get("type_code", "UNKNOWN"),
             "current_description": a.get("description", "UNKNOWN"),
+            "current_payload_prefix_hint": a.get("payload_prefix_hint", "UNKNOWN"),
+            "target_payload_prefix_hint": b.get("payload_prefix_hint", "UNKNOWN"),
+            "current_compression_record": a.get("compression_record", {"status": "UNKNOWN"}),
+            "target_compression_record": b.get("compression_record", {"status": "UNKNOWN"}),
+            "current_keybag_candidate_present": a.get("keybag_candidate_present"),
+            "target_keybag_candidate_present": b.get("keybag_candidate_present"),
+            "encryption_cross_version_status": "NOT_DETERMINED",
             "target_description": b.get("description", "UNKNOWN"),
             "current_file_sha256": a.get("sha256_of_compressed_or_wrapped_component_file"),
             "target_file_sha256": b.get("sha256_of_compressed_or_wrapped_component_file"),
