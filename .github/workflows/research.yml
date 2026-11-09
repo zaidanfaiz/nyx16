@@ -20,10 +20,24 @@ on:
       - '.github/workflows/research.yml'
   workflow_dispatch:
     inputs:
-      manifest_url:
-        description: 'Optional public raw GitHub BuildManifest.plist URL (not a full IPSW)'
-        required: false
+      firmware_target:
+        description: 'Select a baseline or firmware input (iPhone 12 iOS 26.1 is the default)'
+        type: choice
+        required: true
+        default: iphone12-ios26.1
+        options:
+          - iphone12-ios26.1
+          - custom-ipsw-url
+          - public-manifest-url
+          - baseline
+      ipsw_url:
+        description: 'Custom mode only: direct Apple CDN .ipsw URL'
         type: string
+        required: false
+      manifest_url:
+        description: 'Public manifest mode only: raw GitHub BuildManifest.plist URL'
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -34,9 +48,9 @@ concurrency:
 
 jobs:
   report:
-    name: Generate evidence-based research reports
+    name: Research iPhone 12 iOS 26.1 firmware metadata
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Checkout Nyx16
         uses: actions/checkout@v4
@@ -46,22 +60,44 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
-      - name: Run regression tests
+      - name: Run regression tests (offline fixtures)
         env:
           PYTHONPATH: src
         run: python -m unittest discover -s tests -v
-      - name: Retrieve optional public BuildManifest
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.manifest_url != '' }}
+      - name: Read BuildManifest from Apple IPSW using bounded HTTP ranges
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.firmware_target == 'iphone12-ios26.1' || inputs.firmware_target == 'custom-ipsw-url' }}
+        env:
+          FIRMWARE_TARGET: ${{ github.event_name == 'workflow_dispatch' && inputs.firmware_target || 'iphone12-ios26.1' }}
+          CUSTOM_IPSW_URL: ${{ inputs.ipsw_url }}
+        run: |
+          python tools/partial_ipsw.py \
+            --preset "$FIRMWARE_TARGET" \
+            --url "$CUSTOM_IPSW_URL" \
+            --out evidence/manifests/from-apple-ipsw.plist \
+            --metadata-out reports/ipsw_http_source.json
+      - name: Read optional public GitHub-hosted manifest
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.firmware_target == 'public-manifest-url' }}
         env:
           MANIFEST_URL: ${{ inputs.manifest_url }}
-        run: python tools/fetch_manifest.py --url "$MANIFEST_URL" --out evidence/manifests/from-dispatch.plist
-      - name: Build manifest matrix and Secure Boot evidence reports
+        run: |
+          test -n "$MANIFEST_URL" || { echo "manifest_url is required"; exit 1; }
+          python tools/fetch_manifest.py --url "$MANIFEST_URL" --out evidence/manifests/from-dispatch.plist
+      - name: Generate compatibility matrices and Secure Boot evidence
         env:
           PYTHONPATH: src
-        run: python -m nyx16.research --manifests evidence/manifests --evidence evidence/secure_boot_sources.json --out reports
-      - name: Publish summary to GitHub Actions
-        run: cat reports/RESEARCH_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload reports as downloadable artifact
+        run: |
+          python -m nyx16.research \
+            --manifests evidence/manifests \
+            --evidence evidence/secure_boot_sources.json \
+            --out reports
+      - name: Publish GitHub Actions summary
+        run: |
+          cat reports/RESEARCH_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+          if [ -f reports/ipsw_http_source.json ]; then
+            echo "## Source provenance" >> "$GITHUB_STEP_SUMMARY"
+            echo 'Apple CDN IPSW read using HTTP Range. See ipsw_http_source.json in artifact for transfer size, SHA256 of the manifest, and validation limits.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload report artifact
         uses: actions/upload-artifact@v4
         with:
           name: nyx16-research-reports-${{ github.run_number }}
