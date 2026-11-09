@@ -32,7 +32,7 @@ class MacProbeTests(unittest.TestCase):
                 return "SENSITIVE_DEVICE_UDID"
             lookup = {
                 "ProductType": "iPhone13,2", "ProductVersion": "27.0",
-                "BuildVersion": "24A123", "HardwareModel": "D53gAP",
+                "BuildVersion": "24A123", "HardwareModel": "D53gAP", "BasebandVersion": "mock-baseband",
             }
             return lookup.get(args[-1])
         with patch("mac_probe.run_command", side_effect=execute):
