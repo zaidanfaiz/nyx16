@@ -26,7 +26,7 @@ TARGET = {
     "target_boards": ["d53gap", "d53pap"],
     "manifest_sha256": "b756fdf237c0bd7893e280447947b6b385b36b3e8eaae372980edc3c2c054774",
 }
-INFO_KEYS = ("ProductType", "ProductVersion", "BuildVersion", "HardwareModel")
+INFO_KEYS = ("ProductType", "ProductVersion", "BuildVersion", "HardwareModel", "BasebandVersion")
 SAFE_RECOVERY_KEYS = ("MODE", "CPID", "BDID", "MODEL")
 
 
