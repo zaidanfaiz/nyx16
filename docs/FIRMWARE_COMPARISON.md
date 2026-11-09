@@ -43,3 +43,30 @@ Apple authorization: **NOT_CHECKED**; SEP and baseband cross-version compatibili
 Apple's signed software update system is documented at https://support.apple.com/en-ca/guide/security/secf683e0b36/web.
 
 For the user's original Mac experiment, the recognized device was `iPhone12,1` with board `N104AP`, iOS 27.2 and baseband 8.00.00. Those details do **not** establish SEP/baseband downgrade compatibility. Do not run firmware restore commands based on this report.
+
+
+## New archive-index experiment (read-only)
+
+The `tools/ipsw_inventory.py` utility now checks the **real IPSW ZIP central directory** for paths referenced by iPhone 11 (`N104AP`) iBoot, iBSS, iBEC, LLB, SEP, Baseband and KernelCache BuildManifest component entries.
+
+The tool:
+- Queries official Apple CDN IPSWs over strict HTTP 206 byte ranges and reads **only the root BuildManifest and ZIP central-directory metadata**.
+- Verifies the root manifest's SHA256 against the separately fetched manifest used in the existing iOS 27.2 vs 26.1 comparison.
+- For each relevant build identity, records component category, exact manifest-declared ZIP path, whether that path exists exactly, and **ZIP-declared** compressed/uncompressed byte sizes and compression method.
+- Compares corresponding component entries across the two IPSW versions conservatively. Missing paths and ambiguous identities are explicitly marked.
+- Does **not** download firmware-component binary payloads, hash component binaries, test bootability, perform TSS requests, or contact an iPhone.
+
+This adds the following files to the normal GitHub Actions comparison artifact:
+
+| File | Contents |
+| --- | --- |
+| `ios27_2_archive_inventory.json` | Current firmware ZIP directory metadata |
+| `ios26_1_archive_inventory.json` | Target firmware ZIP directory metadata |
+| `iphone11_ipsw_archive_comparison.json` | Matched component paths and archive size comparisons |
+| `iphone11_ipsw_archive_comparison.csv` | Tabular comparison by identity and component |
+
+### Interpret carefully
+
+The presence of a file path and its size in a ZIP directory is a **metadata observation only**. It does not prove the referenced binary's signature, authenticity, exploitability, cross-version compatibility, or availability for unsigned restore. `ZIP_ENTRY_METADATA_MATCH_NOT_BINARY_VERIFIED` must never be interpreted as compatible or identical firmware. When paths are missing, the program reports `ZIP_PATH_NOT_VERIFIED_IN_BOTH`, not a firmware failure.
+
+The project already proved the connected iPhone 11 `CPID=0x8030`, `BDID=0x04`, `MODEL=n104ap` was reachable in Recovery and DFU, and returned to normal iOS 27.2. That hardware evidence is **separate** from the remote IPSW archive inventory.
