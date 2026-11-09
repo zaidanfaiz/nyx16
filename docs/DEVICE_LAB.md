@@ -50,3 +50,10 @@ Never upload raw `irecovery -q` output, pairing records, serial/ECID/UDID, APNon
 ## Status criteria
 
 `OBSERVED` describes a measurable property; `REPRODUCED` requires repeating it; `JAILBREAK_VERIFIED` requires independently verified on-device privilege and usable jailbreak environment. Failure or missing access is a valid finding.
+
+
+## J2: application sandbox and Data Protection measurements
+
+Following the J1 iPhone 11 app-container PASS, the Nyx16Lab app has a **Run J2 Diagnostics** button, which lists availability/readability of directories inside its own sandbox and checks the protection attribute of a temporary own-file before deleting it. The signed app's entitlements can be inspected on macOS using a redacted CLI report; the installed device's code signature is not directly inspected.
+
+See [on-device J2 diagnostics](../ios/Nyx16Lab/J2_SECURITY_DIAGNOSTICS.md). J2 does **not** attempt root privilege, protected file access, exploit payloads or DFU operations.
