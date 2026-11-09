@@ -16,7 +16,7 @@ private enum LabPalette {
     static let muted = Color(red: 0.63, green: 0.70, blue: 0.80)
 }
 
-private enum CheckStatus: String {
+enum CheckStatus: String {
     case passed = "PASS"
     case partial = "INCONCLUSIVE"
     case failed = "FAIL"
@@ -38,13 +38,13 @@ private enum CheckStatus: String {
     }
 }
 
-private struct LabObservation: Identifiable {
+struct LabObservation: Identifiable {
     let id = UUID()
     let title: String
     let value: String
 }
 
-private struct LabStage: Identifiable {
+struct LabStage: Identifiable {
     let id: String
     let title: String
     let subtitle: String
