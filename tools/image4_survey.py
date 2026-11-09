@@ -74,11 +74,13 @@ def description_field(data, offset, bound):
         )
     raw = data[begin:end]
     plain = all(0x20 <= c < 0x7f for c in raw)
+    display_text = plain and len(raw) <= 192
     return {
-        "description": raw.decode("ascii") if plain else "OPAQUE_IA5STRING",
+        "description": raw.decode("ascii") if display_text else "OPAQUE_IA5STRING",
         "description_octets": len(raw),
         "description_sha256": hashlib.sha256(raw).hexdigest(),
         "description_printable": plain,
+        "description_exported_as_text": display_text,
     }, after
 
 
