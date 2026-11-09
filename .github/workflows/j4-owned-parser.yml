@@ -1,0 +1,56 @@
+name: J4 Owned Parser Robustness
+
+on:
+  pull_request:
+    paths:
+      - 'tools/j4_parser_lab.py'
+      - 'tests/test_j4_parser_lab.py'
+      - 'docs/J4_RESEARCH.md'
+      - '.github/workflows/j4-owned-parser.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'tools/j4_parser_lab.py'
+      - 'tests/test_j4_parser_lab.py'
+      - '.github/workflows/j4-owned-parser.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  owned-parser-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Exercise bounded project-owned parser
+        run: |
+          python3 -m unittest discover -s tests -p 'test_j4_parser_lab.py' -v
+          python3 tools/j4_parser_lab.py --seed 1627 --cases 1500 --out reports/j4_owned_parser.json
+      - name: Publish evidence JSON
+        uses: actions/upload-artifact@v4
+        with:
+          name: j4-owned-parser-evidence
+          path: reports/j4_owned_parser.json
+          if-no-files-found: error
+      - name: Summarize actual lab scope
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          with open("reports/j4_owned_parser.json", encoding="utf-8") as f:
+              d = json.load(f)
+          print("## J4 — Project-owned parser")
+          print(f"- Deterministic cases: {d['cases']}")
+          print(f"- Rejected malformed frames: {d['mutation_rejected_as_malformed']}")
+          print(f"- Accepted valid frames: {d['mutation_accepted_as_valid']}")
+          print(f"- Unexpected failures: {d['unexpected_failures']}")
+          print("- Apple/iOS components tested: **NO**")
+          print("- Physical iPhone tested: **NO**")
+          print("- Jailbreak demonstrated: **NO**")
+          PY
