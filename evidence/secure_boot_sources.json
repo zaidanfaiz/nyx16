@@ -50,6 +50,20 @@
       "statement": "Apple describes the software update system as designed to prevent downgrade attacks. This does not prove individual build signing status.",
       "source": "https://support.apple.com/en-gb/guide/security/sec114e4db04/web",
       "type": "VENDOR_DOCUMENTATION"
+    },
+    {
+      "id": "apple_install_authorization",
+      "scope": "iPhone update/restore authorization; relevant across A12–A16",
+      "statement": "Apple documents that install authorization checks versions currently signed by Apple and personalizes approval using the device ECID and anti-replay value; a BuildManifest alone does not establish approval.",
+      "source": "https://support.apple.com/en-ca/guide/security/secf683e0b36/web",
+      "type": "VENDOR_DOCUMENTATION"
+    },
+    {
+      "id": "signed_system_volume",
+      "scope": "iOS and iPadOS system volume during supported software updates",
+      "statement": "Apple documents that iOS and iPadOS bootloaders check the system volume seal against an Apple-signed value before starting the kernel.",
+      "source": "https://support.apple.com/en-ca/guide/security/secd698747c9/web",
+      "type": "VENDOR_DOCUMENTATION"
     }
   ]
 }
