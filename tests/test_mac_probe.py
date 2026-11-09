@@ -29,9 +29,18 @@ class MacProbeTests(unittest.TestCase):
             ("iPhone14,5", "A15", "iPhone 13"),
             ("iPhone14,7", "A15", "iPhone 14"),
             ("iPhone15,2", "A16", "iPhone 14 Pro"),
+            ("iPhone15,4", "A16", "iPhone 15"),
+            ("iPhone16,1", "A17 Pro", "iPhone 15 Pro"),
+            ("iPhone16,2", "A17 Pro", "iPhone 15 Pro Max"),
         ]:
             result = identify_product(product)
             self.assertEqual((result["chip_family"], result["device"]), (family, model))
+
+    def test_a17_pro_board(self):
+        self.assertEqual(identify_product("iPhone16,1", "D83AP")["board_match"], "MATCH")
+        self.assertEqual(identify_product("iPhone16,2", "D84AP")["board_match"], "MATCH")
+        self.assertEqual(identify_product("iPhone16,1", "D84AP")["board_match"], "MISMATCH")
+        self.assertEqual(identify_recovery("0x8130"), "A17 Pro")
 
     def test_iphone11_board(self):
         self.assertEqual(identify_product("iPhone12,1", "N104AP")["board_match"], "MATCH")
