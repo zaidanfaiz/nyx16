@@ -1,40 +1,55 @@
-# Using Nyx16 with GitHub Actions
+# Run Nyx16 through GitHub Actions
 
-## 1. Run a baseline report
+Nyx16 runs entirely on GitHub-hosted runners. You do not need to download IPSWs, install anything on macOS, or connect an iPhone.
 
-Open [Nyx16 Firmware Research workflow](../.github/workflows/research.yml) from the repository **Actions** tab, click **Run workflow**, and choose branch `main`. Leave `manifest_url` blank.
+## Fastest path: iPhone 12, iOS 26.1
 
-This produces:
-- `soc_research_matrix.csv` with A12–A16 research families
-- `firmware_manifest_matrix.csv`, usually header-only until real manifest evidence is supplied
-- `secure_boot_evidence.md` with cited Apple security design constraints
-- `research_summary.json` and `RESEARCH_SUMMARY.md` with explicit confidence limits
+1. Open [Nyx16 Firmware Research](https://github.com/zaidanfaiz/nyx16/actions/workflows/research.yml).
+2. Choose **Run workflow**, branch `main`.
+3. Keep `firmware_target` set to **iphone12-ios26.1** (default).
+4. Leave `ipsw_url` and `manifest_url` empty, then press **Run workflow**.
+5. Open the completed run, read **Summary**, and download `nyx16-research-reports-...` from **Artifacts**.
 
-## 2. Analyze a public BuildManifest.plist
+The preset points to a public Apple CDN firmware:
+- Model: iPhone 12 (`iPhone13,2`), A14
+- iOS version: `26.1`, build `23B85`
+- File: `iPhone13,2,iPhone13,3_26.1_23B85_Restore.ipsw`
+- Source reference: https://ipsw.me/download/iPhone13%2C2/23B85/
+- Published full-file SHA256: `23d19d631c47ccc008bdc28df6d93fdbc7975ceed7afa6c87885438e0a19e5cc` (**not verified** by partial download)
+- Signing status reported by the catalog: **unsigned**. Nyx16 itself makes **no Apple signing request**.
 
-Use the same workflow and enter the **public raw GitHub** URL of one `BuildManifest.plist` in `manifest_url`. Supported hosts:
-- `https://raw.githubusercontent.com/...`
-- `https://gist.githubusercontent.com/...`
+Nyx16 uses HTTP `Range` requests to read only sections needed for the ZIP central directory and root `BuildManifest.plist`. It requests no more than 64 MiB total and refuses HTTP 200 full-file responses. If Apple stops accepting byte ranges, the workflow **fails clearly rather than downloading the 10.1 GB firmware**.
 
-This URL must point directly to a plist, **not** a GitHub HTML page and **not** to a full IPSW (multi-GB ZIP). Only the plist is downloaded into the temporary runner, capped at 10 MiB. An encrypted, private, or malformed manifest will fail with an error.
+## Other input modes
 
-Alternatively commit non-sensitive public plist inputs to `evidence/manifests/`. Every push that changes evidence triggers a new GitHub Actions report automatically.
+| `firmware_target` | What to enter |
+| --- | --- |
+| `iphone12-ios26.1` | Nothing else; predefined Apple CDN IPSW |
+| `custom-ipsw-url` | `ipsw_url`: direct HTTPS `updates.cdn-apple.com/*.ipsw` URL |
+| `public-manifest-url` | `manifest_url`: raw `BuildManifest.plist` URL on GitHub raw or gist |
+| `baseline` | Nothing; no remote firmware input |
 
-## 3. Read results
+Pushes to `main` and pull requests that affect code or evidence also run the iPhone 12 preset as an integration test, so the network-based extraction is tested in GitHub Actions. On manual dispatch, select a different mode to disable this.
 
-Open the run and inspect the **Summary**. Download the `nyx16-research-reports-N` artifact from its **Artifacts** section. Reports remain available for 21 days.
+## Artifacts and interpretation
 
-The records distinguish these states:
-- `DECLARED_IN_IDENTITY` — both ProductType and DeviceClass appear inside one BuildIdentity.
-- `NOT_ESTABLISHED` — no such explicit pairing is present.
-- `NOT_CHECKED` — Apple signing was **not** queried or verified.
-- `UNKNOWN` — neither SEP nor baseband firmware compatibility was established.
-- `NOT_DEMONSTRATED` — no unsigned downgrade success was observed.
+Downloadable artifact contains:
+- `ipsw_http_source.json`: Apple CDN source, bytes fetched, manifest SHA256, explicit full IPSW hash not verified
+- `firmware_manifest_matrix.csv`: declared build identity, board and product metadata
+- `soc_research_matrix.csv`: A12–A16 baseline, **not** proven compatibility
+- `secure_boot_evidence.md`: cited Apple Secure Boot design constraints
+- `research_summary.json`: hashes and manifest inventory
+- `RESEARCH_SUMMARY.md`: overview repeated in GitHub Actions Summary
 
-Even a perfect BuildManifest match does **not** establish authorization to install iOS. Per [Apple's secure software updates description](https://support.apple.com/en-ca/guide/security/secf683e0b36/web), restore/update authorization is device-personalized and checks which software versions Apple currently authorizes.
+A manifest matching iPhone 12/iOS 26.1 does **not** imply that Apple will authorize a restore. This workflow never tests or bypasses signing, SEP, baseband, Activation Lock, or device Secure Boot. No downgrade is attempted or demonstrated.
 
-## 4. Reproducibility and safety
+## Data and network limits
 
-Every supplied manifest is SHA256-hashed and enumerated in `research_summary.json`. No signing endpoints are called, no device is contacted, and no firmware is patched or flashed. Evidence documentation is vendor-sourced and is **not** a claim that an exploit exists.
+- TLS URLs restricted to official `updates.cdn-apple.com` for IPSW Range mode.
+- Exact HTTP 206 and Content-Range required, transport encoding must be identity.
+- 64 MiB maximum total data fetched; 10 MiB maximum extracted manifest size.
+- No full IPSW hash validation is possible without processing the entire archive.
+- Neither IPSW nor a full archive is saved as an artifact.
+- GitHub Actions artifact retention: 21 days.
 
-For a clean baseline run with no supplied manifest, **0 real inputs is expected**. That is an honest evidence gap, not a CI failure.
+If the CDNs deny ranges, prefer `public-manifest-url` with a trusted source and report the provenance clearly.

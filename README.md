@@ -1,67 +1,53 @@
 # Nyx16
 
-**Apple A12–A16 firmware metadata and Secure Boot research, automated in GitHub Actions**
+**Apple A12–A16 IPSW metadata and Secure Boot research in GitHub Actions**
 
-> **Research only, v0.2.0.** Nyx16 is not a demonstrated exploit. It does not bypass Apple signing, jailbreak, restore, downgrade, or alter an iPhone.
+> **Research only, v0.3.0.** Nyx16 is not a demonstrated exploit. It does not bypass Apple signing, jailbreak, restore, downgrade, or alter an iPhone.
 
-Nyx16 is independent of checkm9 and ipwndfu. Our CI reports what is **documented**, what is **declared by firmware metadata**, and what remains **unverified**.
+Nyx16 is independent of checkm9 and ipwndfu. GitHub Actions now supports direct Apple CDN IPSW URLs using **bounded HTTP Range requests**, downloading only the ZIP directory and `BuildManifest.plist` needed for read-only research. No local tools or full IPSW download required.
 
-## Run entirely through GitHub Actions
+## One-click preset: iPhone 12 / iOS 26.1
 
-1. Open **[Actions → Nyx16 Firmware Research](../../actions/workflows/research.yml)**.
-2. Select **Run workflow** (branch: `main`).
-3. Optionally enter a publicly accessible **raw GitHub URL to a `BuildManifest.plist`** in `manifest_url`. Leave blank to build the baseline research report from committed evidence.
-4. Open the completed run; read the **Summary** and download the **nyx16-research-reports-...** artifact (retained 21 days).
+Open **[Actions → Nyx16 Firmware Research](../../actions/workflows/research.yml)**, select **Run workflow**, and keep `firmware_target=iphone12-ios26.1` (default). Leave URLs blank, start the run, then download the `nyx16-research-reports` artifact.
 
-This workflow also runs automatically on changes to research code, evidence, or documentation in `main`, and on relevant pull requests. No laptop, iPhone connection, complete IPSW upload, or external package installation is needed to run the research pipeline.
+The preset uses the official Apple CDN IPSW for **iPhone 12 (`iPhone13,2`), A14, iOS 26.1 build `23B85`**, cross-referenced against the [IPSW catalog](https://ipsw.me/download/iPhone13%2C2/23B85/). The catalog currently lists the firmware as **unsigned**. Nyx16 does not contact Apple's signing service or assert that unsigned installation is possible.
 
-**The URL input accepts a single raw `BuildManifest.plist` hosted on `raw.githubusercontent.com` or `gist.githubusercontent.com`.** It does not accept full multi-GB IPSW archive URLs. The input is analyzed in the ephemeral Actions runner and is not added to the repository.
+Custom firmware modes support an Apple CDN `.ipsw` URL or a raw public GitHub-hosted `BuildManifest.plist`; `baseline` makes a report without downloading firmware. The repository also executes the preset on relevant CI pushes and pull requests.
 
-### Downloadable reports
+The HTTP Range client requires exact HTTP 206 responses and limits all transfers to **64 MiB**, preventing accidental download of the full 10.1 GB IPSW. If a server does not support ranges, the workflow stops with an error. Only the manifest is saved into an ephemeral runner; firmware binaries are neither extracted nor published.
 
-| File | What it proves |
+## Downloadable reports
+
+| File | Meaning |
 | --- | --- |
-| `firmware_manifest_matrix.csv` | Metadata explicitly declared in supplied BuildManifest identities; no inferred board/product pairing |
-| `soc_research_matrix.csv` | Baseline A12–A16 chip registry; research coverage not exploit support |
-| `secure_boot_evidence.md` | Vendor-documented constraints with references to Apple security documentation |
-| `research_summary.json` | Manifest inventory and SHA256 hashes with limitation flags |
-| `RESEARCH_SUMMARY.md` | Summary visible directly in GitHub Actions |
+| `firmware_manifest_matrix.csv` | Build identity, product, board and OS metadata declared in BuildManifest |
+| `soc_research_matrix.csv` | Baseline A12–A16 SoC inventory, not downgrade compatibility |
+| `secure_boot_evidence.md` | Source-linked Apple Secure Boot design claims |
+| `research_summary.json` | Manifest inventory and SHA256 |
+| `ipsw_http_source.json` | Partial-transfer provenance and hash limits (when IPSW mode is used) |
+| `RESEARCH_SUMMARY.md` | Human-readable GitHub Actions Summary |
 
-When no real manifest is provided, the reports explicitly state **no firmware evidence supplied**. A chip appearing in the baseline table does not mean a downgrade is feasible.
-
-## Research families
+### Current research families
 
 | SoC | Silicon | CPID | Status |
 | --- | --- | --- | --- |
-| A12 | T8020 | 0x8020 | Research only |
-| A13 | T8030 | 0x8030 | Research only |
-| A14 | T8101 | 0x8101 | Research only |
-| A15 | T8110 | 0x8110 | Research only |
-| A16 | T8120 | 0x8120 | Research only |
+| A12 | T8020 | 0x8020 | Metadata research |
+| A13 | T8030 | 0x8030 | Metadata research |
+| A14 | T8101 | 0x8101 | Metadata research |
+| A15 | T8110 | 0x8110 | Metadata research |
+| A16 | T8120 | 0x8120 | Metadata research |
 
 Source: [Asahi Linux SoC codenames](https://asahilinux.org/docs/hw/soc/soc-codenames/).
 
-## Scope and evidence
+**A BuildManifest match is not proof of device restore authorization, valid SHSH, bootability, SEP compatibility, or baseband compatibility.** Signing remains `NOT_CHECKED`; unsigned downgrade remains `NOT_DEMONSTRATED`.
 
-A `BuildManifest.plist` declares product types, build identities, board details, and version metadata. It **does not establish** that Apple still signs a build or that a specific device can boot it. Apple documents a personalized software authorization system and independent Secure Enclave verification.
+See [Actions usage](docs/ACTIONS_USAGE.md), [research roadmap](docs/ROADMAP.md), and [security scope](docs/SECURITY_SCOPE.md).
 
-Every automated report keeps:
-- Apple signing: `NOT_CHECKED`
-- SEP and baseband compatibility: `UNKNOWN`
-- Unsigned downgrade: `NOT_DEMONSTRATED`
-
-See [Actions usage](docs/ACTIONS_USAGE.md), [Roadmap](docs/ROADMAP.md), [Security scope](docs/SECURITY_SCOPE.md), and [Contributing](CONTRIBUTING.md).
-
-## Local developer commands (optional)
-
-Automated analysis runs in GitHub Actions; maintainers may also reproduce checks locally using Python 3.10+:
+## Reproduce tests (optional)
 
 ```bash
 PYTHONPATH=src python3 -m unittest discover -s tests -v
-PYTHONPATH=src python3 -m nyx16.research --manifests evidence/manifests --out reports
 ```
-
-The existing `nyx16 inspect` command can inspect a local IPSW's root BuildManifest, without extracting or modifying firmware. It is separate from the GitHub-hosted research workflow.
 
 ## License
 
