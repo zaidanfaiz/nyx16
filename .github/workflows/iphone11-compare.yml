@@ -9,6 +9,8 @@ on:
       - 'tests/test_compare.py'
       - 'tests/test_ipsw_inventory.py'
       - 'tools/ipsw_inventory.py'
+      - 'tools/image4_survey.py'
+      - 'tests/test_image4_survey.py'
       - '.github/workflows/iphone11-compare.yml'
   push:
     branches: [main]
@@ -18,6 +20,8 @@ on:
       - 'tests/test_compare.py'
       - 'tests/test_ipsw_inventory.py'
       - 'tools/ipsw_inventory.py'
+      - 'tools/image4_survey.py'
+      - 'tests/test_image4_survey.py'
       - '.github/workflows/iphone11-compare.yml'
 
 permissions:
@@ -84,6 +88,21 @@ jobs:
           python tools/ipsw_inventory.py \
             --compare reports/ios27_2_archive_inventory.json reports/ios26_1_archive_inventory.json \
             --out reports/iphone11_ipsw_archive_comparison.json
+      - name: Inspect iOS 27.2 iBoot and SEP IM4P DER headers (bounded)
+        run: |
+          python tools/image4_survey.py \
+            --preset iphone11-ios27.2 \
+            --out reports/ios27_2_image4_headers.json
+      - name: Inspect iOS 26.1 iBoot and SEP IM4P DER headers (bounded)
+        run: |
+          python tools/image4_survey.py \
+            --preset iphone11-ios26.1 \
+            --out reports/ios26_1_image4_headers.json
+      - name: Compare static iBoot and SEP Image4 header evidence
+        run: |
+          python tools/image4_survey.py \
+            --compare reports/ios27_2_image4_headers.json reports/ios26_1_image4_headers.json \
+            --out reports/iphone11_image4_header_comparison.json
       - name: Add findings to run summary
         run: |
           cat reports/IPHONE11_COMPARISON_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
@@ -99,6 +118,11 @@ jobs:
               print(f"  - {label}: {count}")
           print("- Firmware binaries downloaded: **NO**")
           print("- SEP/baseband version compatibility: **UNKNOWN**")
+          image4 = json.loads(Path("reports/iphone11_image4_header_comparison.json").read_text())
+          print("## IM4P shallow static header results")
+          for rec in image4["rows"]:
+              print(f"- {rec['component']}: {rec['current_image4_type']} vs {rec['target_image4_type']} — {rec['comparison']}")
+          print("- Apple signatures verified: **NO**; no firmware was flashed or executed")
           PY
       - name: Upload report (not IPSW or plist files)
         uses: actions/upload-artifact@v4
