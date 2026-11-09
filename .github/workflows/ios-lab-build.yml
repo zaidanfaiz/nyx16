@@ -1,0 +1,47 @@
+name: Nyx16Lab Xcode build
+
+on:
+  pull_request:
+    paths:
+      - 'ios/Nyx16Lab/**'
+      - '.github/workflows/ios-lab-build.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ios/Nyx16Lab/**'
+      - '.github/workflows/ios-lab-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    name: Compile SwiftUI app (simulator, no signing)
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Show Xcode environment
+        run: |
+          xcode-select -p
+          xcodebuild -version
+      - name: Validate shared Xcode scheme
+        run: xcodebuild -list -project ios/Nyx16Lab/Nyx16Lab.xcodeproj
+      - name: Compile iPhone app without code signing
+        run: |
+          xcodebuild \
+            -project ios/Nyx16Lab/Nyx16Lab.xcodeproj \
+            -scheme Nyx16Lab \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/Nyx16LabDerived" \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: State scope
+        run: |
+          echo "## Nyx16Lab validation" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Built SwiftUI simulator target without code signing" >> "$GITHUB_STEP_SUMMARY"
+          echo "- This job cannot validate iOS 27.2 hardware deployment or any jailbreak capability" >> "$GITHUB_STEP_SUMMARY"
+          echo "- No iPhone was contacted" >> "$GITHUB_STEP_SUMMARY"
