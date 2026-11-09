@@ -1,80 +1,100 @@
 # Nyx16
 
-**Apple A12–A16 IPSW metadata and Secure Boot research in GitHub Actions**
+**Apple A12–A17 iPhone jailbreak research — device-first, evidence-driven**
 
-> **Research only, v0.3.0.** Nyx16 is not a demonstrated exploit. It does not bypass Apple signing, jailbreak, restore, downgrade, or alter an iPhone.
+> **Project goal: research and eventually demonstrate a full jailbreak for supported A12–A17 iPhones.**
+> **Current reality: no jailbreak, kernel exploit, privileged filesystem access, or boot-chain bypass is implemented or demonstrated by Nyx16.** Model detection and DFU access are not jailbreak capabilities.
 
-Nyx16 is independent of checkm9 and ipwndfu. GitHub Actions now supports direct Apple CDN IPSW URLs using **bounded HTTP Range requests**, downloading only the ZIP directory and `BuildManifest.plist` needed for read-only research. No local tools or full IPSW download required.
+Nyx16 is moving from its original *unsigned iOS downgrade / IPSW metadata* hypothesis to **research toward a full jailbreak on the installed iOS version**. **Downgrading is no longer a prerequisite or primary objective.** The old IPSW comparison tools remain available as historical firmware research.
 
-## One-click preset: iPhone 11 / iOS 26.1
+## What "full jailbreak" means here
 
-Open **[Actions → Nyx16 Firmware Research](../../actions/workflows/research.yml)**, select **Run workflow**, and keep `firmware_target=iphone11-ios26.1` (default). Leave URLs blank, start the run, then download the `nyx16-research-reports` artifact.
+The desired end state is a **reproducible, independently verified jailbreak on an owned/authorized device**, potentially including the ability to run privileged code and a usable jailbreak environment under iOS security constraints. The required research areas include:
 
-The default preset uses the Apple CDN IPSW for **iPhone 11 (`iPhone12,1`), A13, iOS 26.1 build `23B85`**, cross-referenced against the [IPSW catalog](https://ipsw.me/download/iPhone12%2C1/23B85/). Choose `iphone12-ios26.1` to inspect iPhone 12 firmware instead. The catalog currently lists the firmware as **unsigned**. Nyx16 does not contact Apple's signing service or assert that unsigned installation is possible.
+- iOS application sandbox and code-signing boundaries
+- Kernel privilege and security mitigations
+- Userland-to-kernel and persistence constraints, if applicable
+- iBoot/DFU and boot-chain behavior as *independent* research tracks
+- Device/version-specific compatibility and safe recovery
 
-Custom firmware modes support an Apple CDN `.ipsw` URL or a raw public GitHub-hosted `BuildManifest.plist`; `baseline` makes a report without downloading firmware. The repository also executes the iPhone 11 preset on relevant CI pushes and pull requests. macOS device inspection supports iPhone 11, 12, 13, 14, and their variants through automatic ProductType detection; see [macOS first-run instructions](docs/MAC_FIRST_RUN.md).
+**Rootless is not the same as partial jailbreak.** A successful jailbreak need not make the sealed/system volume writable. Persistent ("untethered") operation is a separate research goal; Nyx16 does not claim it is possible. Any actual exploit chain requires evidence and testing before the term *jailbreak supported* is used.
 
-The HTTP Range client requires exact HTTP 206 responses and limits all transfers to **64 MiB**, preventing accidental download of the full 9.5 GB iPhone 11 IPSW. If a server does not support ranges, the workflow stops with an error. Only the manifest is saved into an ephemeral runner; firmware binaries are neither extracted nor published.
+## Target platforms
 
-## Downloadable reports
+| Chip family | Representative iPhones | Status |
+| --- | --- | --- |
+| A12 | XR, XS, XS Max | Research target; device identification |
+| A13 | 11 series, SE (2020) | **Primary physical research device: iPhone 11** |
+| A14 | 12 series | Research target; device identification |
+| A15 | 13 series, 14/14 Plus, SE (2022) | Research target; device identification |
+| A16 | 14 Pro series, 15/15 Plus (model coverage varies) | Research target; device identification |
+| A17 Pro | 15 Pro, 15 Pro Max | **New research target; identification only** |
 
-| File | Meaning |
-| --- | --- |
-| `firmware_manifest_matrix.csv` | Build identity, product, board and OS metadata declared in BuildManifest |
-| `soc_research_matrix.csv` | Baseline A12–A16 SoC inventory, not downgrade compatibility |
-| `secure_boot_evidence.md` | Source-linked Apple Secure Boot design claims |
-| `research_summary.json` | Manifest inventory and SHA256 |
-| `ipsw_http_source.json` | Partial-transfer provenance and hash limits (when IPSW mode is used) |
-| `RESEARCH_SUMMARY.md` | Human-readable GitHub Actions Summary |
+A17 Pro chip references: [Apple iPhone 15 Pro specs](https://support.apple.com/id-id/111829); [iPhone 15 Pro hardware identifiers](https://ipsw.me/iPhone16%2C1/info/).
 
-### Current research families
+Targeting a chip family is **not** claiming an available exploit, jailbreak compatibility, or support for every iOS version. Each build needs its own device-specific evidence.
 
-| SoC | Silicon | CPID | Status |
-| --- | --- | --- | --- |
-| A12 | T8020 | 0x8020 | Metadata research |
-| A13 | T8030 | 0x8030 | Metadata research |
-| A14 | T8101 | 0x8101 | Metadata research |
-| A15 | T8110 | 0x8110 | Metadata research |
-| A16 | T8120 | 0x8120 | Metadata research |
+## First physical test device
 
-Source: [Asahi Linux SoC codenames](https://asahilinux.org/docs/hw/soc/soc-codenames/).
+- **iPhone 11** (`iPhone12,1`, board `N104AP`, A13, CPID `0x8030`, BDID `0x04`)
+- **Installed iOS:** 27.2 (build `24B119`) at time of testing
+- **Observed modes:** normal, Recovery, DFU; returned to normal mode, activated
+- **Pairing:** verified with Mac
+- **Exploit status:** **none demonstrated**
+- **Device filesystem modification:** **none demonstrated**
 
-**A BuildManifest match is not proof of device restore authorization, valid SHSH, bootability, SEP compatibility, or baseband compatibility.** A manifest for iPhone 12 cannot be assumed to apply to iPhone 11. Signing remains `NOT_CHECKED`; unsigned downgrade remains `NOT_DEMONSTRATED`.
+The above records were obtained by operator-run USB queries on the physical device. Being able to enter DFU or read Apple-hosted firmware is **not** proof of bootrom code execution, access to protected iOS files, or a jailbreak.
 
-See [Actions usage](docs/ACTIONS_USAGE.md), [research roadmap](docs/ROADMAP.md), and [security scope](docs/SECURITY_SCOPE.md).
+See [device lab](docs/DEVICE_LAB.md) for non-destructive measurements and [jailbreak research plan](docs/JAILBREAK_RESEARCH.md) for measurable success criteria.
 
-## Reproduce tests (optional)
+## Research workflow
+
+1. **Identify the actual device and OS build.** Separate USB/DFU access from privileged access; record minimal sanitized metadata.
+2. **Establish a repeatable device lab.** Record baselines and recovery outcomes on owned hardware, including tests that fail.
+3. **Map public security boundaries and candidate research questions.** Evaluate evidence by chip, model, board, iOS build and mitigation, without inferring an exploit from a firmware hash difference.
+4. **Validate any future capability independently.** Distinguish file access, code execution, privileged execution, kernel capability and full jailbreak operation. Never claim a jailbreak based on an unverified log.
+5. **Document responsible disclosure, compatibility and limitations** before release.
+
+The repository currently supports **read-only firmware/USB research and diagnostics**, not an exploit or on-device filesystem patcher. No DFU payloads or arbitrary filesystem modification commands are provided.
+
+## Running existing diagnostic tools on a Mac
+
+With an iPhone connected and trusted in normal mode:
+
+```bash
+export PATH="/opt/local/bin:$PATH"
+cd ~/Development/nyx16
+git pull --ff-only
+python3 tools/mac_probe.py
+```
+
+The existing `mac_probe.py` still contains a **legacy iOS 26.1 comparison default** for compatibility with previous tests. Its `target_ios_version` and `version_relationship` fields are historical comparison metadata, **not a prerequisite for this new jailbreak objective**.
+
+If the phone is in Recovery or DFU, `irecovery -m` can identify its USB mode. DFU is **not** an exploit. Do not use `irecovery` payload/boot commands, Finder Restore or unsigned flashes as "discovery tests."
+
+For the existing local firmware tool:
 
 ```bash
 PYTHONPATH=src python3 -m unittest discover -s tests -v
 ```
 
+## Historical firmware research (preserved)
+
+Nyx16 retains read-only Apple CDN HTTP Range and BuildManifest inspection, iOS 27.2 versus iOS 26.1 comparisons, Image4/iBoot/SEP structure and compression metadata studies. These are **supporting research** only; they have not produced a working downgrade or jailbreak.
+
+- [Firmware comparison archive](docs/FIRMWARE_COMPARISON.md)
+- [Original downgrade feasibility notes](docs/MAC_STAGE5.md)
+- [GitHub Actions firmware reports](../../actions/workflows/iphone11-compare.yml)
+
+## Roadmap and responsible scope
+
+- [Roadmap to a verifiable full jailbreak](docs/ROADMAP.md)
+- [Research design, privilege gates and evidence policy](docs/JAILBREAK_RESEARCH.md)
+- [On-device measurement and recovery](docs/DEVICE_LAB.md)
+- [Security scope and disclosure](docs/SECURITY_SCOPE.md)
+
+**No Activation Lock/MDM bypass, third-party device intrusion, kernel exploit chain, Apple signature bypass, or jailbreak binary is supplied.** Never upload UDIDs, ECIDs, serial numbers, pairing records, personal device data, nonces or proprietary firmware images as public research evidence.
+
 ## License
 
-MIT, copyright 2026 Nyx16 contributors.
-
-
-## macOS Stage 4 — verify the iPhone 11 comparison artifact
-
-With your iPhone 11 attached to the Mac, download the [iOS 27.2 vs 26.1 comparison artifact](https://github.com/zaidanfaiz/nyx16/actions/workflows/iphone11-compare.yml) into Downloads. Then run:
-
-```bash
-cd ~/Development/nyx16
-git pull --ff-only
-python3 tools/mac_verify.py
-```
-
-This recognizes the downloaded ZIP **or an extracted folder** automatically, and cross-checks the artifact fields with USB-reported device model, board, and installed version. Even a pass means **metadata match only**, never unsigned restore permission. See [Mac Stage 4 guide](docs/MAC_STAGE4.md).
-
-
-## Stage 5 — iPhone 11 downgrade feasibility audit (offline)
-
-After successful Stage 4 metadata matching, generate a **conservative, read-only** audit from `~/Desktop/nyx16-stage4.json`:
-
-```bash
-cd ~/Development/nyx16
-git pull --ff-only
-python3 tools/stage5_audit.py
-```
-
-Results are written to `~/Desktop/Nyx16-Stage5/` as JSON and Markdown. The saved signing snapshot is a **date-stamped external catalog observation**, not a live Apple TSS authorization. There is deliberately no `GO` restore decision in this audit. See [Stage 5 instructions](docs/MAC_STAGE5.md).
+MIT. Copyright 2026 Nyx16 contributors.
