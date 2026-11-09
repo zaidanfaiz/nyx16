@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
 from partial_ipsw import (
-    APPLE_IPSW_26_1_IPHONE12, MAX_MANIFEST, RangeError,
+    APPLE_IPSW_26_1_IPHONE12, PRESETS, MAX_MANIFEST, RangeError,
     RemoteIPSW, extract_manifest, validate_url,
 )
 
@@ -46,6 +46,18 @@ class FakeFetcher:
 
 
 class PartialIPSWTests(unittest.TestCase):
+    def test_iphone11_preset_is_separate_from_iphone12(self):
+        i11 = PRESETS["iphone11-ios26.1"]
+        i12 = PRESETS["iphone12-ios26.1"]
+        self.assertEqual(i11["product_type"], "iPhone12,1")
+        self.assertEqual(i11["chip"], "A13")
+        self.assertEqual(i11["ios_version"], "26.1")
+        self.assertEqual(i11["build_version"], "23B85")
+        self.assertNotEqual(i11["url"], i12["url"])
+        self.assertNotEqual(i11["published_ipsw_sha256"], i12["published_ipsw_sha256"])
+        validate_url(i11["url"])
+
+
     def test_partial_ranges_extract_manifest_without_downloading_entire_archive(self):
         fake = FakeFetcher(sample_apple_ipsw(extra_size=5 * 1024 * 1024))
         data, meta = extract_manifest(
