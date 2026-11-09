@@ -57,6 +57,12 @@ See [device lab](docs/DEVICE_LAB.md) for non-destructive measurements and [jailb
 
 The repository currently supports **read-only firmware/USB research and diagnostics**, not an exploit or on-device filesystem patcher. No DFU payloads or arbitrary filesystem modification commands are provided.
 
+## First on-device application experiment: Nyx16Lab
+
+A small, signed SwiftUI application project is included at [`ios/Nyx16Lab`](ios/Nyx16Lab/README.md). It tests **only its own app container**, observing iOS version, a non-identifying process UID/eUID, and whether writing, reading and deleting an app-local probe file works. It does not probe protected system files, run exploit payloads or attempt root access.
+
+The operator Mac has Xcode **26.3** and `devicectl` installed. The first iPhone runs **iOS 27.2**, so **device-support compatibility must be checked in Xcode** before attempting deployment. Follow [Nyx16Lab setup and safety instructions](ios/Nyx16Lab/README.md) to build or run it. A successful local sandbox test is not a jailbreak claim.
+
 ## Running existing diagnostic tools on a Mac
 
 With an iPhone connected and trusted in normal mode:
