@@ -24,6 +24,19 @@ APPLE_IPSW_26_1_IPHONE12 = (
 )
 
 PRESETS = {
+    "iphone11-ios27.2": {
+        "url": (
+            "https://updates.cdn-apple.com/2026FallFCS/"
+            "22a2de9b-5ef9-44b7-9ace-62f861167fd8/"
+            "iPhone12%2C1_27.2_24B119_Restore.ipsw"
+        ),
+        "product_type": "iPhone12,1",
+        "ios_version": "27.2",
+        "build_version": "24B119",
+        "chip": "A13",
+        "reference": "https://ipsw.me/download/iPhone12%2C1/24B119/",
+        "published_ipsw_sha256": "35cb92a648aa7ed8fa1c609f4f900bc6e51e339f4b7c2e3b66ecc39f5f23906a",
+    },
     "iphone11-ios26.1": {
         "url": (
             "https://updates.cdn-apple.com/2025FallFCS/fullrestores/"
@@ -237,7 +250,7 @@ def extract_manifest(url: str, *, product_type=None, ios_version=None, build_ver
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Fetch only BuildManifest.plist from Apple IPSW via HTTP Range")
-    parser.add_argument("--preset", choices=["iphone11-ios26.1", "iphone12-ios26.1", "custom-ipsw-url"], required=True)
+    parser.add_argument("--preset", choices=["iphone11-ios26.1", "iphone11-ios27.2", "iphone12-ios26.1", "custom-ipsw-url"], required=True)
     parser.add_argument("--url", default="", help="Direct updates.cdn-apple.com .ipsw URL for custom preset")
     parser.add_argument("--out", required=True, help="Path to write BuildManifest.plist")
     parser.add_argument("--metadata-out", required=True, help="Where to write input provenance")
