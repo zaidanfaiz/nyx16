@@ -57,11 +57,19 @@ See [device lab](docs/DEVICE_LAB.md) for non-destructive measurements and [jailb
 
 The repository currently supports **read-only firmware/USB research and diagnostics**, not an exploit or on-device filesystem patcher. No DFU payloads or arbitrary filesystem modification commands are provided.
 
-## First on-device application experiment: Nyx16Lab
+## Nyx16Lab — on-device research dashboard
 
-A small, signed SwiftUI application project is included at [`ios/Nyx16Lab`](ios/Nyx16Lab/README.md). It tests **only its own app container**, observing iOS version, a non-identifying process UID/eUID, and whether writing, reading and deleting an app-local probe file works. It does not probe protected system files, run exploit payloads or attempt root access.
+[Nyx16Lab](ios/Nyx16Lab/README.md) is an iPhone app for non-privileged J1–J3 lab observations, tested on an iPhone 11 running iOS 27.2. The current app has a **single Run Full Diagnostics button** that performs:
 
-The operator Mac has Xcode **26.3** and `devicectl` installed. The first iPhone runs **iOS 27.2**, so **device-support compatibility must be checked in Xcode** before attempting deployment. Follow [Nyx16Lab setup and safety instructions](ios/Nyx16Lab/README.md) to build or run it. A successful local sandbox test is not a jailbreak claim.
+- **J1:** app-owned sandbox file write/read/cleanup
+- **J2:** app-owned directory inventory and Data Protection attribute test
+- **J3:** recognized ARM64 Mach-O header of the **app's own executable** and deterministic SHA-256 self-test
+
+The updated navy/cyan dashboard has an **original Nyx16 N16 logo and 1024px Home Screen icon**, three expandable result cards, and Copy Report / AirDrop sharing of the combined report.
+
+These are **normal signed-app baseline checks**, not a kernel exploit, jailbreak, sandbox escape or proof of code-signing bypass. J3 hardware results still require operator-run testing after install.
+
+[App setup](ios/Nyx16Lab/README.md) · [J3 scope](ios/Nyx16Lab/J3_RUNTIME_DIAGNOSTICS.md) · [Brand vector](branding/nyx16-mark.svg)
 
 ## Running existing diagnostic tools on a Mac
 
@@ -106,13 +114,3 @@ Nyx16 retains read-only Apple CDN HTTP Range and BuildManifest inspection, iOS 2
 MIT. Copyright 2026 Nyx16 contributors.
 
 
-### J2 security diagnostics (device-first)
-
-After the successful J1 app-container baseline on the test iPhone 11, Nyx16Lab now includes **Run J2 Diagnostics**. The app inventories only its own container directories, checks the protection attribute of one temporary app-owned file, and distinguishes observed behavior from permissions not tested. An optional Mac-side tool reports **redacted entitlements of a locally signed app**.
-
-See [Nyx16Lab J2 guide](ios/Nyx16Lab/J2_SECURITY_DIAGNOSTICS.md). **No sandbox escape, kernel exploit, code-signing bypass, or jailbreak has been demonstrated.**
-
-
-### On-device report transfer
-
-Nyx16Lab has **Copy Report** to put the J2/J1 diagnostic text on the iPhone clipboard. With Apple's Universal Clipboard configured for the same Apple Account and Handoff, use **⌘V** on the Mac to paste it. **AirDrop / Share** offers a fallback when the devices use different Apple Accounts. No server or Nyx16 web endpoint is needed. See [Nyx16Lab instructions](ios/Nyx16Lab/README.md).
