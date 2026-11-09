@@ -52,3 +52,16 @@ PYTHONPATH=src python3 -m unittest discover -s tests -v
 ## License
 
 MIT, copyright 2026 Nyx16 contributors.
+
+
+## macOS Stage 4 — verify the iPhone 11 comparison artifact
+
+With your iPhone 11 attached to the Mac, download the [iOS 27.2 vs 26.1 comparison artifact](https://github.com/zaidanfaiz/nyx16/actions/workflows/iphone11-compare.yml) into Downloads. Then run:
+
+```bash
+cd ~/Development/nyx16
+git pull --ff-only
+python3 tools/mac_verify.py
+```
+
+This recognizes the downloaded ZIP **or an extracted folder** automatically, and cross-checks the artifact fields with USB-reported device model, board, and installed version. Even a pass means **metadata match only**, never unsigned restore permission. See [Mac Stage 4 guide](docs/MAC_STAGE4.md).
