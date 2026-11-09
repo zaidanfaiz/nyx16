@@ -92,4 +92,6 @@ Status vocabulary: `SHALLOW_DER_ENVELOPE_VALID`, `UNRECOGNIZED_OR_MALFORMED_DER`
 
 Format reference: [The iPhone Wiki — IMG4 file format](https://www.theiphonewiki.com/wiki/IMG4_File_Format) and [ReverseEngineering.wiki IMG4](https://reverseengineering.wiki/index.php/Format:IMG4).
 
+**SEP description nuance:** An Apple SEP IM4P can use a long (1,246-byte) IA5String for opaque description metadata. Nyx16 records its size, SHA256 and whether it is printable; it deliberately does not interpret or export embedded data. Older 192-byte description limits incorrectly rejected these files, and have been corrected.
+
 Connected iPhone mode tests remain separate: the physical iPhone 11 showed `CPID=0x8030` and `BDID=0x04` in Recovery and DFU before returning to normal iOS 27.2. No payload was ever sent to the phone.
