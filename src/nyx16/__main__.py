@@ -6,9 +6,9 @@ from .audit import IPSWError, inspect_ipsw
 from .chips import list_chips
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(prog="nyx16", description="Offline iOS firmware metadata research")
+    parser = argparse.ArgumentParser(prog="nyx16", description="A12-A17 jailbreak research (current tools read-only)")
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("chips", help="Show documented A12-A16 chip identifiers")
+    sub.add_parser("chips", help="Show A12-A17 Pro chip identifiers (not jailbreak support)")
     inspect = sub.add_parser("inspect", help="Inspect an IPSW locally without writing anything")
     inspect.add_argument("ipsw", help="Path to an IPSW ZIP archive")
     inspect.add_argument("--product-type", help="Expected Apple ProductType (e.g. iPhone13,2)")
