@@ -95,3 +95,20 @@ Format reference: [The iPhone Wiki — IMG4 file format](https://www.theiphonewi
 **SEP description nuance:** An Apple SEP IM4P can use a long (1,246-byte) IA5String for opaque description metadata. Nyx16 records its size, SHA256 and whether it is printable; it deliberately does not interpret or export embedded data. Older 192-byte description limits incorrectly rejected these files, and have been corrected.
 
 Connected iPhone mode tests remain separate: the physical iPhone 11 showed `CPID=0x8030` and `BDID=0x04` in Recovery and DFU before returning to normal iOS 27.2. No payload was ever sent to the phone.
+
+
+## Stage: IM4P compression and keybag *metadata* survey
+
+`tools/image4_survey.py` now captures the following **bounded static observations** in the normal iBoot/SEP reports:
+
+- First 4–8 bytes of the wrapped IM4P payload are classified as a **signature hint** (e.g., `bvx2` / LZFSE or `complzss` / LZSS). It does not decompress the payload.
+- The optional ASN.1 DER compression SEQUENCE, **only** when it exactly matches two positive INTEGER fields: algorithm ID (0 = LZSS, 1 = LZFSE) and declared uncompressed size. Unknown IDs are displayed as unknown.
+- The sequence of optional DER tag numbers and the number of additional OCTET STRING fields, reported as potential keybag fields. **No keybag bytes, decryption keys, IVs, or payload contents are exported.**
+- `encryption_status` is always **NOT_DETERMINED**. Keybag presence is metadata only, and keybag absence never proves plaintext.
+- Neither an IM4P compression record nor a payload signature hint implies the compressed content can be decoded, verified, booted, or used in an unsigned downgrade.
+
+The workflow's `ios27_2_image4_headers.json`, `ios26_1_image4_headers.json` and `iphone11_image4_header_comparison.json` now contain these metadata fields. Full IPSWs are not downloaded, no iPhone hardware is contacted, and no restore or DFU payload occurs.
+
+Format references:
+- https://reverseengineering.wiki/index.php/Format:IMG4
+- https://github.com/tihmstar/img4tool/blob/master/img4tool/img4tool.cpp
