@@ -68,7 +68,7 @@ git pull --ff-only
 python3 tools/mac_probe.py
 ```
 
-The existing `mac_probe.py` still contains a **legacy iOS 26.1 comparison default** for compatibility with previous tests. Its `target_ios_version` and `version_relationship` fields are historical comparison metadata, **not a prerequisite for this new jailbreak objective**.
+The Mac probe now defaults to **jailbreak research identification** and reports `jailbreak_status=NOT_DEMONSTRATED`. The old `--target-ios 26.1` option remains available only to reproduce prior firmware comparisons; it is **not a prerequisite** for this jailbreak objective.
 
 If the phone is in Recovery or DFU, `irecovery -m` can identify its USB mode. DFU is **not** an exploit. Do not use `irecovery` payload/boot commands, Finder Restore or unsigned flashes as "discovery tests."
 
