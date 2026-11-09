@@ -1,27 +1,54 @@
-# Nyx16 research roadmap
+# Nyx16 Roadmap — A12–A17 jailbreak research
 
-## M0 — Independent foundation (completed)
-- Independent A12–A16 CPID database and offline IPSW metadata inspection
-- No checkm9 dependencies; no device modifications
-- Synthetic tests, read-only GitHub Actions CI
+## Project mission
 
-## M1 — Evidence-grounded GitHub Actions reporting (implemented)
-- Automatic and manually dispatched pipeline
-- Public GitHub-hosted BuildManifest URL as optional ephemeral input
-- SHA256 manifest inventory and declared identity metadata matrix
-- A12–A16 SoC research baseline with no implied compatibility
-- Official Apple Secure Boot references in downloadable Markdown report
-- CI validation for malformed, oversized, and linked manifest inputs
+Investigate the feasibility of a **full, usable iOS jailbreak** on Apple A12 through A17 Pro devices, beginning with an authorized iPhone 11 (A13) running iOS 27.2. **Do not make an unsigned downgrade a dependency.** The mission is aspirational: as of this roadmap, **Nyx16 has not demonstrated a jailbreak or found a working exploit chain**.
 
-## M2 — Research quality improvements (proposed)
-- More explicit confidence tiers for each evidence claim
-- Optional offline manifest-to-manifest comparison with version-aware records
-- Regression tests for real, redacted public BuildManifest examples with provenance
-- Documented per-version signing sources, clearly separated from signing assertions
+A jailbreak is version-specific. Evidence for one model/build must never be generalized to other versions or chip families.
 
-## M3 — Evidence-dependent research (not started)
-- Authorization, SEP, and baseband constraints documented with sources
-- Independent reproduction on owned / authorized devices only
-- No declaration of exploit capability without a verifiable demonstration
+## Evidence gates
 
-**No activation bypass, unsigned firmware flashing, signing defeat, or full downgrade method is provided.**
+| Gate | Objective | Required evidence | Current status |
+| --- | --- | --- | --- |
+| J0 | Identify physical device and installed OS | Model/board/chip, iOS/build, normal/Recovery/DFU transport observations | **Observed on one A13 iPhone 11** |
+| J1 | Establish repeatable device lab and recovery method | Consent/ownership, test log, state transition, minimal sanitized metadata | **Partially done** |
+| J2 | Characterize current security boundary, mitigations and candidate vulnerability classes | Version-specific public documentation and reproducible observations | **Not demonstrated** |
+| J3 | Demonstrate limited sandboxed execution on the owned device | Independent, instrumented evidence and a clean recovery path | **Not demonstrated** |
+| J4 | Demonstrate a privilege boundary crossing, if independently discovered and authorized | Repeatable, scoped validation, failure analysis, disclosure review | **Not demonstrated** |
+| J5 | Demonstrate privileges required for a usable jailbreak environment | Separation of userland, kernel, sandbox and code-signing requirements; tests | **Not demonstrated** |
+| J6 | Package a tested jailbreak with version-specific compatibility and rollback | Test matrices, reproducible release checks, unambiguous limitations | **Not demonstrated** |
+
+Gates describe requirements, not a promised exploit chain or a command recipe.
+
+## Workstreams
+
+### A. Device-first research (highest priority)
+- Keep **iPhone 11 / A13 / N104AP / iOS 27.2** as the first test reference.
+- Support normal, Recovery and DFU *identification* with sanitized logs, not bootrom execution claims.
+- Research which filesystem interfaces are accessible in a **non-jailbroken** device, without mislabeling app containers as system/root access.
+- Track supported vs unsupported kernel/security observations per OS build and device.
+- Record ordinary device recoverability and negative results; do not use blind restore/flash steps.
+
+### B. Version-specific iOS security research
+- Document boundaries: AMFI/code signing, sandbox, kernel hardening, protected filesystem, boot chain and SEP.
+- Track independently corroborated public findings with relevant versions and mitigation state.
+- Develop isolated/offline tests and structured observations before any device behavior is described as exploitable.
+- Handle any novel finding responsibly, without publishing a weaponizable chain or targeting third-party devices.
+
+### C. A12–A17 hardware coverage
+- A12–A16 registry is an identification baseline, **not jailbreak support**.
+- Add A17 Pro: iPhone 15 Pro (`iPhone16,1` / `D83AP`) and iPhone 15 Pro Max (`iPhone16,2` / `D84AP`), CPID `0x8130`.
+- Require board/build specific validation; any missing chip/model/version remains **UNKNOWN**, not assumed compatible.
+
+### D. Legacy firmware knowledge (lower priority)
+- Preserve read-only iOS 27.2 vs 26.1 IPSW/Image4 analysis for architectural context.
+- Do not keep restarting downgrade feasibility audits as if they advance the jailbreak gate.
+- No unsigned restore mechanism is claimed or bundled.
+
+## Completion criteria
+
+A claim such as **"full jailbreak supported"** requires a repeatable authorized-device demonstration, clearly defined achieved privileges, compatible version/build list, failure modes, documented recovery route and third-party reproducibility. Rootless vs rootful, tethered vs untethered, and persistence must be explicitly identified.
+
+**Current headline: "Jailbreak research — no exploit demonstrated."**
+
+Reference: [device lab](DEVICE_LAB.md), [security research scope](JAILBREAK_RESEARCH.md), [safety](SECURITY_SCOPE.md).
