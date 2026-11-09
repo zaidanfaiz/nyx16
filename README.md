@@ -67,9 +67,19 @@ The repository currently supports **read-only firmware/USB research and diagnost
 
 The updated navy/cyan dashboard has an **original Nyx16 N16 logo and 1024px Home Screen icon**, three expandable result cards, and Copy Report / AirDrop sharing of the combined report.
 
-These are **normal signed-app baseline checks**, not a kernel exploit, jailbreak, sandbox escape or proof of code-signing bypass. J3 hardware results still require operator-run testing after install.
+These are **normal signed-app baseline checks**, not a kernel exploit, jailbreak, sandbox escape or proof of code-signing bypass. The operator has now reported **J1, J2 and J3 PASS on the physical iPhone 11 (iOS 27.2)**; each reflects stock-app functionality, not privileged execution.
 
 [App setup](ios/Nyx16Lab/README.md) · [J3 scope](ios/Nyx16Lab/J3_RUNTIME_DIAGNOSTICS.md) · [Brand vector](branding/nyx16-mark.svg)
+
+## J4 — Reproducible vulnerability research setup
+
+Nyx16 now has an **offline parser robustness harness** at [`tools/j4_parser_lab.py`](tools/j4_parser_lab.py). Unlike J1–J3, it does not create a new app button: it tests **a small binary parser written by the project itself**, with bounded, reproducible malformed inputs. Each run produces evidence JSON and unexpected behavior must be reproduced with the same seed. [J4 guide](docs/J4_RESEARCH.md).
+
+```bash
+python3 tools/j4_parser_lab.py --seed 1627 --cases 1500 --out reports/j4_owned_parser.json
+```
+
+This tool does **not** scan iOS, fuzz Apple parsers, exploit a kernel, or make the iPhone jailbroken. Its purpose is to establish a reliable local experiment workflow before interpreting any claimed vulnerability.
 
 ## Running existing diagnostic tools on a Mac
 
