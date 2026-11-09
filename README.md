@@ -65,3 +65,16 @@ python3 tools/mac_verify.py
 ```
 
 This recognizes the downloaded ZIP **or an extracted folder** automatically, and cross-checks the artifact fields with USB-reported device model, board, and installed version. Even a pass means **metadata match only**, never unsigned restore permission. See [Mac Stage 4 guide](docs/MAC_STAGE4.md).
+
+
+## Stage 5 — iPhone 11 downgrade feasibility audit (offline)
+
+After successful Stage 4 metadata matching, generate a **conservative, read-only** audit from `~/Desktop/nyx16-stage4.json`:
+
+```bash
+cd ~/Development/nyx16
+git pull --ff-only
+python3 tools/stage5_audit.py
+```
+
+Results are written to `~/Desktop/Nyx16-Stage5/` as JSON and Markdown. The saved signing snapshot is a **date-stamped external catalog observation**, not a live Apple TSS authorization. There is deliberately no `GO` restore decision in this audit. See [Stage 5 instructions](docs/MAC_STAGE5.md).
