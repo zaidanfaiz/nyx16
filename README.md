@@ -104,3 +104,10 @@ Nyx16 retains read-only Apple CDN HTTP Range and BuildManifest inspection, iOS 2
 ## License
 
 MIT. Copyright 2026 Nyx16 contributors.
+
+
+### J2 security diagnostics (device-first)
+
+After the successful J1 app-container baseline on the test iPhone 11, Nyx16Lab now includes **Run J2 Diagnostics**. The app inventories only its own container directories, checks the protection attribute of one temporary app-owned file, and distinguishes observed behavior from permissions not tested. An optional Mac-side tool reports **redacted entitlements of a locally signed app**.
+
+See [Nyx16Lab J2 guide](ios/Nyx16Lab/J2_SECURITY_DIAGNOSTICS.md). **No sandbox escape, kernel exploit, code-signing bypass, or jailbreak has been demonstrated.**
