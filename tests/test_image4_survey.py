@@ -93,7 +93,7 @@ class Image4SurveyTests(unittest.TestCase):
         self.assertFalse(result["signature_verified"])
 
     def test_compression_sequence_and_keybag_candidate_are_metadata_only(self):
-        compression = der(0x30, der(0x02, b"\x01") + der(0x02, b"\x00\x20\x00"))
+        compression = der(0x30, der(0x02, b"\x01") + der(0x02, b"\x20\x00"))
         keybag = der(0x04, b"not-a-real-keybag")
         raw = der(0x30, ia5("IM4P") + ia5("ibot") + ia5("iBoot-test")
                   + der(0x04, b"bvx2" + b"x" * 100)
