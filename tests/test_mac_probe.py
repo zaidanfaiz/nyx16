@@ -87,6 +87,13 @@ class MacProbeTests(unittest.TestCase):
         self.assertEqual(report["jailbreak_status"], "NOT_DEMONSTRATED")
         self.assertEqual(report["privileged_device_file_access"], "NOT_DEMONSTRATED")
         self.assertEqual(report["dfu_code_execution"], "NOT_DEMONSTRATED")
+        self.assertEqual(report["kernel_privilege_escalation"], "NOT_DEMONSTRATED")
+        self.assertEqual(report["sandbox_escape"], "NOT_DEMONSTRATED")
+        self.assertEqual(report["jailbreak_environment"], "NOT_DEMONSTRATED")
+        self.assertNotIn("unsigned_downgrade", report)
+        self.assertNotIn("apple_signing_status", report)
+        self.assertNotIn("sep_baseband_compatibility", report)
+        self.assertIn("no jailbreak exploit", report["note"])
 
         self.assertNotIn("SECRET_UDID", json.dumps(report))
         self.assertFalse(report["device_modified"])
@@ -105,6 +112,9 @@ class MacProbeTests(unittest.TestCase):
             report = mac_probe.probe(target_ios="26.1")
         self.assertEqual(report["version_relationship"], "TARGET_OLDER_THAN_INSTALLED")
         self.assertEqual(report["jailbreak_status"], "NOT_DEMONSTRATED")
+        self.assertEqual(report["apple_signing_status"], "NOT_CHECKED")
+        self.assertEqual(report["sep_baseband_compatibility"], "UNKNOWN")
+        self.assertEqual(report["unsigned_downgrade"], "NOT_DEMONSTRATED")
 
     @patch("mac_probe.platform.system", return_value="Darwin")
     @patch("mac_probe.shutil.which", return_value="/opt/local/bin/tool")
