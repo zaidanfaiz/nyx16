@@ -64,3 +64,12 @@ The build may use a newer/different SDK than the phone runs; do not infer physic
 **No system files are read or modified.** If a test fails, preserve the Xcode error and stop; do not attempt unsigned firmware booting as a workaround.
 
 For the evidence policy see [Device Lab](../../docs/DEVICE_LAB.md) and [Jailbreak Research](../../docs/JAILBREAK_RESEARCH.md).
+
+
+## J2 security diagnostics
+
+The second button, **Run J2 Diagnostics**, measures the accessibility of the app's **own** Documents, Library, Caches and tmp directories. It also creates and removes one temporary file in Documents with a known Apple Data Protection attribute and reports the attribute readback.
+
+To inspect selected code-signing entitlements of the **locally signed .app** on your Mac, use \`python3 tools/inspect_lab_entitlements.py --app /absolute/path/to/Nyx16Lab.app\`. This deliberately redacts team identifiers and entitlement values.
+
+Read [J2 setup, interpretations and limitations](J2_SECURITY_DIAGNOSTICS.md). No root access, sandbox escape, protected-system-path access, or code-signing bypass is performed.
