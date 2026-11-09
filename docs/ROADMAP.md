@@ -26,6 +26,12 @@ The operator reported all three Nyx16Lab checks as PASS on the physical **iPhone
 
 **J4 investigation infrastructure started:** the offline, seeded [owned-parser robustness harness](J4_RESEARCH.md) is available for learning to reproduce malformed-input failures. It targets only Nyx16's own reference parser; **an iOS vulnerability, a sandbox escape and a kernel exploit are not demonstrated**. No new J4 button was added to the iPhone app.
 
+## J4B/J4C public-source patch research
+
+J4B reviewed [fixed WebKit issue 304140](J4B_WEBKIT_PATCH_STUDY.md) with an independent integer-boundary model. J4C expands this to a [four-case patch comparison](J4C_WEBKIT_PATCH_COMPARISON.md) with source-linked, reproducible Markdown/JSON reports and explicit platform limits. The observed recurring errors involve narrowing size types, multiplication for allocation, geometry area calculations, and overflow within validation expressions.
+
+The **research support tasks are implemented**, but the original J4 gate (**privilege boundary crossing**) is still **NOT DEMONSTRATED**, and no upstream report establishes that the owned iPhone 11 on iOS 27.2 is vulnerable. The application retains one Run Full Diagnostics button for J1–J3.
+
 ## Workstreams
 
 ### A. Device-first research (highest priority)

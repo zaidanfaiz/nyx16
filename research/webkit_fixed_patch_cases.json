@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "study": "NYX16_J4C_WEBKIT_FIXED_PATCH_COMPARISON",
+  "research_cutoff": "2026-11-09",
+  "source_policy": "Documented fixed upstream issues only; claims derived from Bugzilla descriptions and reviewed commit messages.",
+  "cases": [
+    {
+      "bug_id": "304140",
+      "title": "[WebContent] Fix Integer Underflow in xmlReadMemory",
+      "component": "WebCore XML/XSLT and platform-specific encrypted media",
+      "reported_date": "2025-12-13",
+      "fixed_date": "2026-01-07",
+      "upstream_revision": "305255@main",
+      "commit_short": "66bfd48c94bf",
+      "class": "signed_length_boundary",
+      "root_cause": "Potential loss of range information when size values enter libxml2 APIs accepting signed-int lengths.",
+      "documented_fix": "Explicit INT_MAX precondition checks at three integration points before passing length arguments to libxml2.",
+      "source_paths": [
+        "Source/WebCore/xml/parser/XMLDocumentParserLibxml2.cpp",
+        "Source/WebCore/xml/XSLTProcessorLibxslt.cpp",
+        "Source/WebCore/Modules/encryptedmedia/InitDataRegistry.cpp"
+      ],
+      "evidence_urls": [
+        "https://bugs.webkit.org/show_bug.cgi?id=304140",
+        "https://commits.webkit.org/305255@main",
+        "https://github.com/WebKit/WebKit/commit/66bfd48c94bf04db92322e41ea8b78d64b1c775e"
+      ],
+      "scope_caveat": "One changed PlayReady initialization data path is GStreamer-specific; no iOS 27.2 binary or version mapping has been verified."
+    },
+    {
+      "bug_id": "289523",
+      "title": "Catch integer overflow on 32-bits in JSWebAssemblyArray.h",
+      "component": "JavaScriptCore WebAssembly array allocation",
+      "reported_date": "2025-03-11",
+      "fixed_date": "2025-03-19",
+      "upstream_revision": "292355@main",
+      "commit_short": "4b568b921b7a",
+      "class": "allocation_size_overflow",
+      "root_cause": "Array count multiplied by element size can wrap when size_t is 32 bits.",
+      "documented_fix": "Detect and propagate overflow instead of allowing a wrapped allocation-size calculation on 32-bit builds.",
+      "source_paths": [
+        "Source/JavaScriptCore/wasm/js/JSWebAssemblyArray.h",
+        "Source/JavaScriptCore/wasm/WasmOperations.cpp",
+        "Source/JavaScriptCore/wasm/WasmOperationsInlines.h"
+      ],
+      "evidence_urls": [
+        "https://bugs.webkit.org/show_bug.cgi?id=289523",
+        "https://commits.webkit.org/292355@main",
+        "https://github.com/WebKit/WebKit/commit/4b568b921b7a"
+      ],
+      "scope_caveat": "The documented failure condition is explicitly 32-bit size_t; do not assume relevance to an A13 64-bit iPhone build."
+    },
+    {
+      "bug_id": "297624",
+      "title": "feConvolveMatrix order causes integer overflow",
+      "component": "WebCore SVG filter geometry",
+      "reported_date": "2025-08-19",
+      "fixed_date": "2025-08-20",
+      "upstream_revision": "298946@main",
+      "commit_short": "7f3400f5de0c",
+      "class": "geometry_product_overflow",
+      "root_cause": "The dimensions used to validate an SVG convolution kernel could produce an overflowing integer product.",
+      "documented_fix": "Use IntSize::unclampedArea() to avoid overflowing the dimension-product check, per upstream commit message.",
+      "source_paths": [
+        "Source/WebCore/svg/SVGFEConvolveMatrixElement.cpp"
+      ],
+      "evidence_urls": [
+        "https://bugs.webkit.org/show_bug.cgi?id=297624",
+        "https://commits.webkit.org/298946@main",
+        "https://github.com/WebKit/WebKit/commit/7f3400f5de0c"
+      ],
+      "scope_caveat": "Upstream report describes an assertion/crash in a debug build, not code execution or proven exploitability."
+    },
+    {
+      "bug_id": "308713",
+      "title": "IndexedDB string key length integer overflow bypasses bounds check",
+      "component": "WebCore IndexedDB deserialization",
+      "reported_date": "2026-02-26",
+      "fixed_date": "2026-03-04",
+      "upstream_revision": "308649@main",
+      "commit_short": "e5eb16d1eda3",
+      "class": "bounds_check_multiplication_overflow",
+      "root_cause": "A size-check expression multiplied a uint32_t key length by an element width using arithmetic that could wrap, weakening its intended comparison.",
+      "documented_fix": "Change the length validation so the bounds check cannot overflow (exact expression should be read from upstream diff before claiming a particular cast).",
+      "source_paths": [
+        "Source/WebCore/Modules/indexeddb/server/IDBSerialization.cpp"
+      ],
+      "evidence_urls": [
+        "https://bugs.webkit.org/show_bug.cgi?id=308713",
+        "https://commits.webkit.org/308649@main",
+        "https://github.com/WebKit/WebKit/commit/e5eb16d1eda3"
+      ],
+      "scope_caveat": "Bug report discusses resource exhaustion on a WebKit nightly build; no iOS 27.2 behavior or jailbreak implication established."
+    }
+  ],
+  "comparison_notes": [
+    "304140 and 289523 focus on preserving representable size values at interface or allocation boundaries.",
+    "308713 and 297624 show why a bound-check computation itself must not overflow before it can reject an input.",
+    "These are four different upstream fixes, not four independently demonstrated exploitable security vulnerabilities.",
+    "Bugzilla 'RESOLVED FIXED' and mainline changes do not prove Apple iOS 27.2 shipped a vulnerable version or was affected.",
+    "289523 is explicitly a 32-bit size_t condition, so no direct inference for the 64-bit A13 device."
+  ],
+  "not_tested": [
+    "iOS 27.2 WebKit",
+    "Safari or WebKit binaries",
+    "Actual vulnerable source build",
+    "Physical iPhone",
+    "Privilege boundary crossing",
+    "Jailbreak"
+  ],
+  "finding": "DOCUMENTARY_PATCH_COMPARISON_ONLY"
+}
