@@ -111,3 +111,8 @@ MIT. Copyright 2026 Nyx16 contributors.
 After the successful J1 app-container baseline on the test iPhone 11, Nyx16Lab now includes **Run J2 Diagnostics**. The app inventories only its own container directories, checks the protection attribute of one temporary app-owned file, and distinguishes observed behavior from permissions not tested. An optional Mac-side tool reports **redacted entitlements of a locally signed app**.
 
 See [Nyx16Lab J2 guide](ios/Nyx16Lab/J2_SECURITY_DIAGNOSTICS.md). **No sandbox escape, kernel exploit, code-signing bypass, or jailbreak has been demonstrated.**
+
+
+### On-device report transfer
+
+Nyx16Lab has **Copy Report** to put the J2/J1 diagnostic text on the iPhone clipboard. With Apple's Universal Clipboard configured for the same Apple Account and Handoff, use **⌘V** on the Mac to paste it. **AirDrop / Share** offers a fallback when the devices use different Apple Accounts. No server or Nyx16 web endpoint is needed. See [Nyx16Lab instructions](ios/Nyx16Lab/README.md).
