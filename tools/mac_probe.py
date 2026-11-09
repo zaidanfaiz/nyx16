@@ -126,11 +126,17 @@ def probe(target_ios=None):
         "jailbreak_status": "NOT_DEMONSTRATED",
         "privileged_device_file_access": "NOT_DEMONSTRATED",
         "dfu_code_execution": "NOT_DEMONSTRATED",
-        "apple_signing_status": "NOT_CHECKED",
-        "sep_baseband_compatibility": "UNKNOWN",
-        "unsigned_downgrade": "NOT_DEMONSTRATED",
+        "kernel_privilege_escalation": "NOT_DEMONSTRATED",
+        "sandbox_escape": "NOT_DEMONSTRATED",
+        "jailbreak_environment": "NOT_DEMONSTRATED",
         "device_modified": False,
     }
+    if target_ios is not None:
+        result.update({
+            "apple_signing_status": "NOT_CHECKED",
+            "sep_baseband_compatibility": "UNKNOWN",
+            "unsigned_downgrade": "NOT_DEMONSTRATED",
+        })
     if result["execution_host"] != "Darwin":
         result["note"] = "Connect the iPhone to a Mac and run the probe locally."
         return result
@@ -164,7 +170,7 @@ def probe(target_ios=None):
         )
         if target_ios is not None:
             result["version_relationship"] = compare_versions(observed.get("ProductVersion"), target_ios)
-        result["note"] = "Hardware identification only; no unsigned firmware restore was attempted."
+        result["note"] = "Device identification only: no jailbreak exploit or elevated privileges have been tested."
         return result
     if shutil.which("irecovery"):
         rec = parse_recovery(run_command(["irecovery", "-q"]))
