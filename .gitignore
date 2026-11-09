@@ -10,3 +10,9 @@ dist/
 *.shsh
 *.shsh2
 *.plist.tmp
+
+# Xcode local state and build products
+**/xcuserdata/
+*.xcuserstate
+*.xcuserdatad/
+DerivedData/
