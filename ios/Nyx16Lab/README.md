@@ -73,3 +73,12 @@ The second button, **Run J2 Diagnostics**, measures the accessibility of the app
 To inspect selected code-signing entitlements of the **locally signed .app** on your Mac, use \`python3 tools/inspect_lab_entitlements.py --app /absolute/path/to/Nyx16Lab.app\`. This deliberately redacts team identifiers and entitlement values.
 
 Read [J2 setup, interpretations and limitations](J2_SECURITY_DIAGNOSTICS.md). No root access, sandbox escape, protected-system-path access, or code-signing bypass is performed.
+
+
+## Copy diagnostic output to your Mac
+
+After running **Run J2 Diagnostics**, tap **Copy Report**. It copies the actual reports from this session to the iPhone clipboard. With **Universal Clipboard** configured (same Apple Account, Wi-Fi + Bluetooth + Handoff on both devices), paste immediately on the Mac using **⌘V**. The app shows a confirmation message after copying locally; it cannot verify the paste on the Mac.
+
+If you use different Apple Accounts, tap **AirDrop / Share** and pick the Mac instead.
+
+See [J2 clipboard setup and diagnostics](J2_SECURITY_DIAGNOSTICS.md). Copy and Share are disabled until at least one test has been run.
