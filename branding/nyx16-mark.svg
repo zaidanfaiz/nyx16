@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="t d">
+  <title id="t">Nyx16 emblem</title>
+  <desc id="d">Original cyan N monogram inside concentric orbital lines, with 16 signature.</desc>
+  <rect width="1024" height="1024" fill="#071326"/>
+  <circle cx="512" cy="505" r="449" fill="none" stroke="#1D496C" stroke-width="16"/>
+  <circle cx="512" cy="505" r="364" fill="none" stroke="#1D496C" stroke-width="22" stroke-dasharray="1890 230" transform="rotate(-32 512 505)"/>
+  <path d="M310 700 V300 L662 700 V300" fill="none" stroke="#1D496C" stroke-width="106" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M310 700 V300 L662 700 V300" fill="none" stroke="#4FDFFB" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="711" y="819" fill="#F7FDFF" font-family="sans-serif" font-weight="900" font-size="119">16</text>
+</svg>

@@ -1,84 +1,57 @@
-# Nyx16Lab — physical iPhone sandbox baseline
+# Nyx16Lab — iPhone device research app
 
-**Purpose:** Build a normal, signed SwiftUI application and test **its own container** on an authorized iPhone. This is the first on-device development baseline for Nyx16's A12–A17 jailbreak research program.
+**Current app: v0.3 · Unified J1–J3 diagnostics.**
 
-It is not a jailbreak, sandbox escape, exploit trigger, kernel primitive, custom DFU image, or protected filesystem inspector. It uses no network access, private APIs, elevated entitlements, or background data collection.
+Nyx16Lab is a signed SwiftUI app for research baselines on owned/authorized iPhones, starting with the iPhone 11 (A13) on iOS 27.2. It currently does **not** implement or demonstrate a jailbreak, kernel exploit, unsigned code execution, or privileged filesystem access.
 
-## Requirements
+## What's new
 
-- macOS with Xcode (operator tested Xcode **26.3**, build `17C529`)
-- A physical iPhone accessible in Xcode, trusted and unlocked
-- Developer Mode enabled on the device when Xcode asks for it
-- A personal/team Apple Development signing identity selected in Xcode
+- New original **Nyx16 N16 orbit logo** and matching branded **Home Screen icon**, navy/cyan visual style.
+- **Exactly one run button:** `Run Full Diagnostics` executes J1, J2 and J3 in sequence, then shows collapsible result cards.
+- J1 checks normal write/read/cleanup within the app's own Documents directory.
+- J2 checks its **own** directory readability and a temporary file's Data Protection attribute.
+- J3 reads the first **eight bytes only** of the app's own executable to check ARM64 Mach-O header and executes a known SHA-256 self-test. **No privileged execution is tested.**
+- After one full run, **Copy Report** and **AirDrop / Share** export a combined J1–J3 report. No report is uploaded automatically.
 
-**Device compatibility caution:** the current test iPhone runs **iOS 27.2**; Xcode 26.3 might not have the matching device support needed for deployment/debugging. Passing a simulator build does **not** prove physical iOS 27.2 deployment. Verify in Xcode's Devices and Simulators window or `xcrun devicectl list devices`; do not downgrade or restore the phone to address a developer-support mismatch.
+See [J3 test interpretation and limits](J3_RUNTIME_DIAGNOSTICS.md) and [J2 details](J2_SECURITY_DIAGNOSTICS.md).
 
-## Step 1 — Verify Xcode sees the iPhone
+## Build / install on your iPhone
+
+Requirements: macOS, Xcode with a supported target, installed iPhone development signing identity, a paired iPhone with Developer Mode as needed.
 
 ```bash
 cd ~/Development/nyx16
 git pull --ff-only
-export PATH="/opt/local/bin:$PATH"
-xcodebuild -list -project ios/Nyx16Lab/Nyx16Lab.xcodeproj
-xcrun devicectl list devices
+open ios/Nyx16Lab/Nyx16Lab.xcodeproj
 ```
 
-If the phone is listed but unavailable, check the reported reason in Xcode → Window → Devices and Simulators; developer tools and OS version support may be prerequisites.
+In Xcode choose the `Nyx16Lab` target, **Signing & Capabilities**, pick your Apple development Team, and select the paired iPhone as the target. Press `⌘R` to install and run the updated app. Keep the same Bundle ID and development Team to update an already installed app in place.
 
-## Step 2 — Build without device signing
-
-This checks the project and Swift compilation against the installed iOS Simulator SDK. It makes **no modifications to the iPhone**.
+To compile the project without device signing:
 
 ```bash
-xcodebuild \
-  -project ios/Nyx16Lab/Nyx16Lab.xcodeproj \
-  -scheme Nyx16Lab \
-  -configuration Debug \
+xcodebuild -project ios/Nyx16Lab/Nyx16Lab.xcodeproj \
+  -scheme Nyx16Lab -configuration Debug \
   -destination 'generic/platform=iOS Simulator' \
-  -derivedDataPath /tmp/nyx16lab-build \
-  CODE_SIGNING_ALLOWED=NO build
+  -derivedDataPath /tmp/nyx16lab-build CODE_SIGNING_ALLOWED=NO build
 ```
 
-The build may use a newer/different SDK than the phone runs; do not infer physical device support.
+A simulator build is not proof of iOS 27.2 hardware compatibility or a jailbreak.
 
-## Step 3 — Install through Xcode, after eligibility is confirmed
+## Transfer data to Mac
 
-1. Open `ios/Nyx16Lab/Nyx16Lab.xcodeproj` in Xcode.
-2. Select the `Nyx16Lab` target → **Signing & Capabilities** → enable Automatically manage signing, select **your** personal/team Apple account and, if needed, change the bundle identifier to one unique to your team.
-3. Select the **connected iPhone** as the run destination. Follow Xcode's on-device prompt to enable Developer Mode, if needed (Settings → Privacy & Security → Developer Mode; may need restart).
-4. Press **Run** once the destination is available and signing is valid. Do not force DFU/Recovery or restore the device.
-5. In the app, tap **Run Sandbox Test**. The report contains OS version, app bundle, UID/eUID and a temporary **own Documents** write/read/delete check.
-6. Share only the report's non-identifying result lines, not any pairing records, UDIDs/ECIDs, device management details or unrelated user data.
+Run all diagnostics once, then select **Copy Report**. Universal Clipboard needs both devices on the same Apple Account with Wi-Fi, Bluetooth and Handoff enabled. Paste on Mac with `⌘V`. If accounts differ, tap **AirDrop / Share** instead.
+
+The reports deliberately omit ECID, UDID, serial numbers, pairing records, filesystem paths and personal data. Do not copy raw device pairing logs or sensitive sign-in information.
 
 ## Interpretation
 
-| Output | What it demonstrates |
+| Status | Meaning |
 | --- | --- |
-| `Own sandbox file write/read: PASS` | Normal signed app can read/write its own container |
-| `Temporary test file cleanup: PASS` | The app removed only its own probe file |
-| `Process UID` and `Effective UID` | A basic process identity observation, not proof of elevated privilege |
-| `JAILBREAK: NOT DEMONSTRATED` | No jailbreak test or exploit has occurred |
-| Xcode simulator build succeeds | Swift project compiles with the selected SDK; does not establish hardware compatibility |
-| App fails to launch on iOS 27.2 | Could be signing, Developer Mode, pairing or device-support mismatch; not a jailbreak finding |
+| J1 PASS | Read/write/delete within app's own sandbox |
+| J2 PASS | App-local directory / file attribute checks succeeded |
+| J3 PASS | Normal compiled app runs and its own ARM64 executable header is recognizable |
+| INCONCLUSIVE | Expected local evidence unavailable; investigate without guessing |
+| JAILBREAK NOT DEMONSTRATED | No privilege bypass, kernel exploit or full jailbreak has been tested |
 
-**No system files are read or modified.** If a test fails, preserve the Xcode error and stop; do not attempt unsigned firmware booting as a workaround.
-
-For the evidence policy see [Device Lab](../../docs/DEVICE_LAB.md) and [Jailbreak Research](../../docs/JAILBREAK_RESEARCH.md).
-
-
-## J2 security diagnostics
-
-The second button, **Run J2 Diagnostics**, measures the accessibility of the app's **own** Documents, Library, Caches and tmp directories. It also creates and removes one temporary file in Documents with a known Apple Data Protection attribute and reports the attribute readback.
-
-To inspect selected code-signing entitlements of the **locally signed .app** on your Mac, use \`python3 tools/inspect_lab_entitlements.py --app /absolute/path/to/Nyx16Lab.app\`. This deliberately redacts team identifiers and entitlement values.
-
-Read [J2 setup, interpretations and limitations](J2_SECURITY_DIAGNOSTICS.md). No root access, sandbox escape, protected-system-path access, or code-signing bypass is performed.
-
-
-## Copy diagnostic output to your Mac
-
-After running **Run J2 Diagnostics**, tap **Copy Report**. It copies the actual reports from this session to the iPhone clipboard. With **Universal Clipboard** configured (same Apple Account, Wi-Fi + Bluetooth + Handoff on both devices), paste immediately on the Mac using **⌘V**. The app shows a confirmation message after copying locally; it cannot verify the paste on the Mac.
-
-If you use different Apple Accounts, tap **AirDrop / Share** and pick the Mac instead.
-
-See [J2 clipboard setup and diagnostics](J2_SECURITY_DIAGNOSTICS.md). Copy and Share are disabled until at least one test has been run.
+Nyx16's goal remains full jailbreak **research** on A12–A17 Pro, but J1–J3 are instrumented baseline measurements, not a newly found vulnerability.
