@@ -104,6 +104,16 @@ class Image4SurveyTests(unittest.TestCase):
         self.assertFalse(record["description_printable"])
         self.assertEqual(record["structure_parse_status"], "SHALLOW_DER_ENVELOPE_VALID")
 
+    def test_long_printable_sep_description_is_redacted(self):
+        blob = der(0x30, ia5("IM4P") + ia5("sepi")
+                   + der(0x16, b"a" * 1246)
+                   + der(0x04, b"payload"))
+        result = parse_image4_container(blob)
+        self.assertEqual(result["description"], "OPAQUE_IA5STRING")
+        self.assertTrue(result["description_printable"])
+        self.assertFalse(result["description_exported_as_text"])
+        self.assertEqual(result["description_octets"], 1246)
+
     def test_img4_wrapper_parses_without_manifest(self):
         inner = sample_im4p("SEP", "26.1")
         outer = der(0x30, ia5("IMG4") + inner)
