@@ -6,15 +6,15 @@
 
 Nyx16 is independent of checkm9 and ipwndfu. GitHub Actions now supports direct Apple CDN IPSW URLs using **bounded HTTP Range requests**, downloading only the ZIP directory and `BuildManifest.plist` needed for read-only research. No local tools or full IPSW download required.
 
-## One-click preset: iPhone 12 / iOS 26.1
+## One-click preset: iPhone 11 / iOS 26.1
 
-Open **[Actions → Nyx16 Firmware Research](../../actions/workflows/research.yml)**, select **Run workflow**, and keep `firmware_target=iphone12-ios26.1` (default). Leave URLs blank, start the run, then download the `nyx16-research-reports` artifact.
+Open **[Actions → Nyx16 Firmware Research](../../actions/workflows/research.yml)**, select **Run workflow**, and keep `firmware_target=iphone11-ios26.1` (default). Leave URLs blank, start the run, then download the `nyx16-research-reports` artifact.
 
-The preset uses the official Apple CDN IPSW for **iPhone 12 (`iPhone13,2`), A14, iOS 26.1 build `23B85`**, cross-referenced against the [IPSW catalog](https://ipsw.me/download/iPhone13%2C2/23B85/). The catalog currently lists the firmware as **unsigned**. Nyx16 does not contact Apple's signing service or assert that unsigned installation is possible.
+The default preset uses the Apple CDN IPSW for **iPhone 11 (`iPhone12,1`), A13, iOS 26.1 build `23B85`**, cross-referenced against the [IPSW catalog](https://ipsw.me/download/iPhone12%2C1/23B85/). Choose `iphone12-ios26.1` to inspect iPhone 12 firmware instead. The catalog currently lists the firmware as **unsigned**. Nyx16 does not contact Apple's signing service or assert that unsigned installation is possible.
 
-Custom firmware modes support an Apple CDN `.ipsw` URL or a raw public GitHub-hosted `BuildManifest.plist`; `baseline` makes a report without downloading firmware. The repository also executes the preset on relevant CI pushes and pull requests.
+Custom firmware modes support an Apple CDN `.ipsw` URL or a raw public GitHub-hosted `BuildManifest.plist`; `baseline` makes a report without downloading firmware. The repository also executes the iPhone 11 preset on relevant CI pushes and pull requests. macOS device inspection supports iPhone 11, 12, 13, 14, and their variants through automatic ProductType detection; see [macOS first-run instructions](docs/MAC_FIRST_RUN.md).
 
-The HTTP Range client requires exact HTTP 206 responses and limits all transfers to **64 MiB**, preventing accidental download of the full 10.1 GB IPSW. If a server does not support ranges, the workflow stops with an error. Only the manifest is saved into an ephemeral runner; firmware binaries are neither extracted nor published.
+The HTTP Range client requires exact HTTP 206 responses and limits all transfers to **64 MiB**, preventing accidental download of the full 9.5 GB iPhone 11 IPSW. If a server does not support ranges, the workflow stops with an error. Only the manifest is saved into an ephemeral runner; firmware binaries are neither extracted nor published.
 
 ## Downloadable reports
 
@@ -39,7 +39,7 @@ The HTTP Range client requires exact HTTP 206 responses and limits all transfers
 
 Source: [Asahi Linux SoC codenames](https://asahilinux.org/docs/hw/soc/soc-codenames/).
 
-**A BuildManifest match is not proof of device restore authorization, valid SHSH, bootability, SEP compatibility, or baseband compatibility.** Signing remains `NOT_CHECKED`; unsigned downgrade remains `NOT_DEMONSTRATED`.
+**A BuildManifest match is not proof of device restore authorization, valid SHSH, bootability, SEP compatibility, or baseband compatibility.** A manifest for iPhone 12 cannot be assumed to apply to iPhone 11. Signing remains `NOT_CHECKED`; unsigned downgrade remains `NOT_DEMONSTRATED`.
 
 See [Actions usage](docs/ACTIONS_USAGE.md), [research roadmap](docs/ROADMAP.md), and [security scope](docs/SECURITY_SCOPE.md).
 
