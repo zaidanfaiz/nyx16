@@ -92,6 +92,52 @@ class Image4SurveyTests(unittest.TestCase):
         self.assertEqual(result["payload_octets_declared"], 40 * len(b"fakepayload"))
         self.assertFalse(result["signature_verified"])
 
+    def test_compression_sequence_and_keybag_candidate_are_metadata_only(self):
+        compression = der(0x30, der(0x02, b"\\x01") + der(0x02, b"\\x00\\x20\\x00"))
+        keybag = der(0x04, b"not-a-real-keybag")
+        raw = der(0x30, ia5("IM4P") + ia5("ibot") + ia5("iBoot-test")
+                  + der(0x04, b"bvx2" + b"x" * 100)
+                  + keybag + compression)
+        info = parse_image4_container(raw)
+        self.assertEqual(info["payload_prefix_hint"], "LZFSE_BVX2_SIGNATURE_ONLY")
+        self.assertEqual(info["compression_record"]["status"], "DECLARED_IN_DER")
+        self.assertEqual(info["compression_record"]["algorithm_label"], "LZFSE")
+        self.assertEqual(info["compression_record"]["declared_uncompressed_bytes"], 8192)
+        self.assertEqual(info["optional_der_tag_sequence"], ["0x04", "0x30"])
+        self.assertTrue(info["keybag_candidate_present"])
+        self.assertEqual(info["encryption_status"], "NOT_DETERMINED")
+        self.assertFalse(info["decryption_performed"])
+        self.assertFalse(info["crypto_key_material_exported"])
+
+    def test_lzss_signature_is_hint_not_a_decompression(self):
+        raw = der(0x30, ia5("IM4P") + ia5("sepi") + ia5("SEP")
+                  + der(0x04, b"complzss" + b"encoded-payload"))
+        result = parse_image4_container(raw)
+        self.assertEqual(result["payload_prefix_hint"], "LZSS_SIGNATURE_ONLY")
+        self.assertEqual(result["compression_record"]["status"], "NOT_DECLARED")
+        self.assertFalse(result["decompression_performed"])
+        self.assertEqual(result["encryption_status"], "NOT_DETERMINED")
+
+    def test_unknown_compression_id_is_not_named(self):
+        record = der(0x30, der(0x02, b"\\x09") + der(0x02, b"\\x01"))
+        raw = der(0x30, ia5("IM4P") + ia5("ibot") + ia5("x")
+                  + der(0x04, b"opaque") + record)
+        info = parse_image4_container(raw)
+        self.assertEqual(info["compression_record"]["status"], "DECLARED_IN_DER")
+        self.assertEqual(info["compression_record"]["algorithm_label"], "UNKNOWN_ALGORITHM")
+
+    def test_malformed_optional_der_rejected(self):
+        raw = der(0x30, ia5("IM4P") + ia5("ibot") + ia5("x")
+                  + der(0x04, b"payload") + b"\\x04\\x82\\x01")
+        with self.assertRaises(Image4Error):
+            parse_image4_container(raw)
+
+    def test_no_keybag_does_not_claim_unencrypted(self):
+        data = parse_image4_container(sample_im4p("iBoot", "27.2"))
+        self.assertFalse(data["keybag_candidate_present"])
+        self.assertEqual(data["encryption_status"], "NOT_DETERMINED")
+        self.assertFalse(data["decompression_performed"])
+
     def test_long_opaque_sep_description_is_valid_metadata(self):
         blob = der(0x30, ia5("IM4P") + ia5("sepi")
                    + der(0x16, b"SEP" + bytes([1]) * 1243)
