@@ -1,0 +1,74 @@
+name: Nyx16 iPhone 11 27.2 vs 26.1
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/nyx16/compare.py'
+      - 'tools/partial_ipsw.py'
+      - 'tests/test_compare.py'
+      - '.github/workflows/iphone11-compare.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/nyx16/compare.py'
+      - 'tools/partial_ipsw.py'
+      - 'tests/test_compare.py'
+      - '.github/workflows/iphone11-compare.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nyx16-iphone11-compare-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    name: Read-only firmware comparison — iPhone 11 / N104AP
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Unit tests (no iPhone hardware)
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -v
+      - name: iOS 27.2 (24B119) iPhone 11 — read BuildManifest via HTTP Range
+        run: |
+          python tools/partial_ipsw.py \
+            --preset iphone11-ios27.2 \
+            --out workspace/ios27_2/BuildManifest.plist \
+            --metadata-out reports/current_ipsw_source.json
+      - name: iOS 26.1 (23B85) iPhone 11 — read BuildManifest via HTTP Range
+        run: |
+          python tools/partial_ipsw.py \
+            --preset iphone11-ios26.1 \
+            --out workspace/ios26_1/BuildManifest.plist \
+            --metadata-out reports/target_ipsw_source.json
+      - name: Compare manifest-declared iBoot SEP baseband metadata
+        env:
+          PYTHONPATH: src
+        run: |
+          python -m nyx16.compare \
+            --current workspace/ios27_2/BuildManifest.plist \
+            --target workspace/ios26_1/BuildManifest.plist \
+            --product iPhone12,1 \
+            --board N104AP \
+            --out reports
+      - name: Add findings to run summary
+        run: cat reports/IPHONE11_COMPARISON_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload report (not IPSW or plist files)
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyx16-iphone11-27_2-vs-26_1-${{ github.run_number }}
+          path: reports/
+          if-no-files-found: error
+          retention-days: 21
