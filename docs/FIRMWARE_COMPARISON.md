@@ -70,3 +70,26 @@ This adds the following files to the normal GitHub Actions comparison artifact:
 The presence of a file path and its size in a ZIP directory is a **metadata observation only**. It does not prove the referenced binary's signature, authenticity, exploitability, cross-version compatibility, or availability for unsigned restore. `ZIP_ENTRY_METADATA_MATCH_NOT_BINARY_VERIFIED` must never be interpreted as compatible or identical firmware. When paths are missing, the program reports `ZIP_PATH_NOT_VERIFIED_IN_BOTH`, not a firmware failure.
 
 The project already proved the connected iPhone 11 `CPID=0x8030`, `BDID=0x04`, `MODEL=n104ap` was reachable in Recovery and DFU, and returned to normal iOS 27.2. That hardware evidence is **separate** from the remote IPSW archive inventory.
+
+
+## Experiment: shallow static Image4 / IM4P header survey
+
+The [comparison workflow](https://github.com/zaidanfaiz/nyx16/actions/workflows/iphone11-compare.yml) additionally performs bounded static inspection of the **iBoot** and **SEP** `.im4p` components for **iPhone 11 N104AP**, iOS 27.2 and iOS 26.1.
+
+- Uses only the official Apple CDN URLs already validated against each `BuildManifest.plist`.
+- Restricts selection to the **Customer Erase Install (IPSW)** identity with `DeviceClass=N104AP` and matching expected version/build.
+- Reads **only two component files per IPSW** via guarded HTTP byte ranges, each capped at **10 MiB compressed and uncompressed**.
+- Parses the top-level ASN.1 DER SEQUENCE, `IM4P`/optional `IMG4` envelope magic, four-character image type, description, OCTET STRING **declared length**, and optional-field presence. It does **not** parse or decrypt the payload OCTET STRING.
+- Computes SHA256 over the complete ZIP member bytes read in memory and verifies ZIP member CRC via the standard Python ZIP reader. **This is not an Apple signature validation or a hardware boot verification.**
+- Does not save firmware components, remove signatures, decrypt firmware, issue device commands, flash, or attempt restore.
+
+The workflow artifact adds:
+- `ios27_2_image4_headers.json`
+- `ios26_1_image4_headers.json`
+- `iphone11_image4_header_comparison.json`
+
+Status vocabulary: `SHALLOW_DER_ENVELOPE_VALID`, `UNRECOGNIZED_OR_MALFORMED_DER`, `FILE_SHA256_DIFFERS`, `FILE_SHA256_MATCH_NOT_SIGNATURE_PROOF`, `IM4P_TYPE_CODE_DIFFERS`, and `PARSE_INCOMPLETE`. These labels report **static format observations**, not exploitability, downgrade viability, SEP compatibility, or any guarantee of binary execution.
+
+Format reference: [The iPhone Wiki — IMG4 file format](https://www.theiphonewiki.com/wiki/IMG4_File_Format) and [ReverseEngineering.wiki IMG4](https://reverseengineering.wiki/index.php/Format:IMG4).
+
+Connected iPhone mode tests remain separate: the physical iPhone 11 showed `CPID=0x8030` and `BDID=0x04` in Recovery and DFU before returning to normal iOS 27.2. No payload was ever sent to the phone.
