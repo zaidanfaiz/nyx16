@@ -1,0 +1,16 @@
+{
+  "evidence_type": "THIRD_PARTY_PUBLIC_CATALOG_SNAPSHOT",
+  "device": "iPhone12,1",
+  "current_version": "27.2",
+  "current_build": "24B119",
+  "target_version": "26.1",
+  "target_build": "23B85",
+  "observed_date": "2026-11-09",
+  "current_catalog_status": "SIGNED",
+  "target_catalog_status": "UNSIGNED",
+  "source_urls": [
+    "https://ipsw.me/download/iPhone12%2C1/24B119/",
+    "https://ipsw.me/download/iPhone12%2C1/23B85/"
+  ],
+  "disclaimer": "Third-party IPSW catalog observation, not a direct Apple TSS signing response or per-device authorization. Status may change."
+}
