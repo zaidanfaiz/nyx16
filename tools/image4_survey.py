@@ -65,6 +65,23 @@ def text_field(data, offset, bound, max_bytes=192):
     return raw.decode("ascii"), after
 
 
+def description_field(data, offset, bound):
+    """Descriptions can contain long opaque Apple metadata; do not decode it as text."""
+    tag, begin, end, after = tlv(data, offset, bound)
+    if tag != 0x16 or end - begin > 4096:
+        raise Image4Error(
+            f"Unsupported IM4P description field (tag=0x{tag:02x}, size={end-begin})"
+        )
+    raw = data[begin:end]
+    plain = all(0x20 <= c < 0x7f for c in raw)
+    return {
+        "description": raw.decode("ascii") if plain else "OPAQUE_IA5STRING",
+        "description_octets": len(raw),
+        "description_sha256": hashlib.sha256(raw).hexdigest(),
+        "description_printable": plain,
+    }, after
+
+
 def parse_image4_container(data):
     """Read DER envelope and payload LENGTH only, never parse its contents."""
     if not isinstance(data, bytes) or not 1 <= len(data) <= COMPONENT_LIMIT:
@@ -87,14 +104,14 @@ def parse_image4_container(data):
     if magic != "IM4P":
         raise Image4Error("Expected IM4P payload magic")
     payload_type, at = text_field(data, at, bound, 16)
-    description, at = text_field(data, at, bound, 192)
+    description_metadata, at = description_field(data, at, bound)
     tag, start, payload_end, at = tlv(data, at, bound)
     if tag != 0x04:
         raise Image4Error("IM4P payload field is not OCTET STRING")
     return {
         "outer_magic": outer_magic,
         "type_code": payload_type,
-        "description": description,
+        **description_metadata,
         "payload_octets_declared": payload_end - start,
         "optional_der_fields_present": at < bound,
         "trailing_bytes_after_der": len(data) - after,
