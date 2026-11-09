@@ -58,7 +58,7 @@ def tlv(data, offset, end):
 def text_field(data, offset, bound, max_bytes=192):
     tag, begin, end, after = tlv(data, offset, bound)
     if tag != 0x16 or end - begin > max_bytes:
-        raise Image4Error("Expected bounded IA5String")
+        raise Image4Error(f"Expected bounded IA5String at offset {offset} (tag=0x{tag:02x}; size={end-begin}; max={max_bytes})")
     raw = data[begin:end]
     if any(c > 0x7f or c < 0x20 for c in raw):
         raise Image4Error("Non-printable IA5String")
