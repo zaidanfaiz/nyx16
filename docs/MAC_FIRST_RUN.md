@@ -1,76 +1,76 @@
-# Nyx16 First Mac Hardware Probe — iPhone 12 (A14)
+# Nyx16 macOS Experiment 1 — A12–A16 iPhone Auto-Detection
 
-This phase is **read-only**: inspect a physically connected iPhone over USB, compare against a previously collected Apple iOS 26.1 firmware manifest, and stop. **No restore, signing bypass, DFU exploit, jailbreak, or iOS downgrade operation occurs.**
+**Actual hardware for this experiment: iPhone 11 (A13, iPhone12,1).**
+The same read-only macOS probe supports device identity lookup for iPhone XR/XS, 11, 12, 13, 14 and their variants.
 
-## 1. Prepare the Mac (macOS 15+, MacPorts)
+No jailbreak, Activation Lock modification, iBoot patch, flash, restore, unsigned downgrade, or signing bypass occurs.
 
-Connect the iPhone 12 via a data-capable Lightning cable. If it is in normal mode, unlock it and choose **Trust This Computer** on the iPhone.
+## 1. Connect and prepare the Mac
 
-Install diagnostic tools using the official MacPorts ports:
+Connect one iPhone by Lightning/USB cable. In normal mode, unlock it and choose **Trust This Computer** if requested. If the device is at Activation Lock, do not try to bypass it; the available normal-mode identity data may be limited.
+
+On the Mac, with MacPorts already installed:
 
 ```bash
-sudo port install libimobiledevice libirecovery
 export PATH="/opt/local/bin:$PATH"
+sudo port install libimobiledevice libirecovery
 ```
 
-References:
-- https://ports.macports.org/port/libimobiledevice/
-- https://ports.macports.org/port/libirecovery/
+Reference tools: [MacPorts libimobiledevice](https://ports.macports.org/port/libimobiledevice/) and [MacPorts libirecovery](https://ports.macports.org/port/libirecovery/).
 
-If these ports are already installed, MacPorts will detect that. `ideviceinfo` reads a paired device's information; `irecovery -q` is only used for metadata query when a normal-mode device is not visible.
+## 2. Clone or update and run the read-only probe
 
-## 2. Run Nyx16 locally
+For a fresh clone:
 
 ```bash
 mkdir -p ~/Development
 cd ~/Development
 git clone https://github.com/zaidanfaiz/nyx16.git
 cd nyx16
-python3 tools/mac_probe.py
+python3 tools/mac_probe.py --target-ios 26.1
 ```
 
-If the repo was previously cloned:
+For an existing clone:
 
 ```bash
 cd ~/Development/nyx16
 git pull --ff-only
-python3 tools/mac_probe.py
+python3 tools/mac_probe.py --target-ios 26.1
 ```
 
-Optional: Compare the macOS probe against a locally downloaded GitHub Actions ZIP artifact (do **not** upload private device details):
+The script does **not** require specifying the iPhone model. It detects `ProductType` and uses the device profile database automatically:
+- iPhone 11 = `iPhone12,1` / A13 / `N104AP`
+- iPhone 12 = `iPhone13,2` / A14 / `D53gAP`
+- iPhone 13 = `iPhone14,5` / A15 / `D17AP`
+- iPhone 14 = `iPhone14,7` / A15 / `D27AP`
+- iPhone 14 Pro = `iPhone15,2` / A16 / `D73AP`
+
+This is a read-only hardware registry, **not** a list of proven exploitable devices.
+
+If a device is only in Recovery/DFU, Nyx16 attempts `irecovery -q` and may identify only the A-series **chip family**, not the exact iPhone model.
+
+## 3. Firmware reports: do not mix different models
+
+To compare with a GitHub Actions report already downloaded to the Mac:
 
 ```bash
-python3 tools/mac_probe.py --report-zip ~/Downloads/nyx16-research-reports-5.zip
+python3 tools/mac_probe.py \
+  --target-ios 26.1 \
+  --report-zip "$HOME/Downloads/nyx16-research-reports-5.zip"
 ```
 
-Optionally save a **sanitized** JSON file locally:
+If that ZIP is for **iPhone 12**, but the Mac detects **iPhone 11**, Nyx16 returns `report_device_applicability=MISMATCH`. That is expected, and prevents wrongly claiming compatibility.
 
-```bash
-python3 tools/mac_probe.py --output ~/Desktop/nyx16-mac-probe.json
-```
+To collect the correct iPhone 11 metadata report, open [Actions → Nyx16 Firmware Research](https://github.com/zaidanfaiz/nyx16/actions/workflows/research.yml) and choose **Run workflow → iphone11-ios26.1**. It reads only `BuildManifest.plist` from the Apple-hosted firmware using HTTP byte ranges, without downloading the whole IPSW. Download that new artifact and pass it with `--report-zip` if desired.
 
-Do not post raw `idevice_id -l`, `ideviceinfo`, or `irecovery -q` outputs, as they may contain persistent device identifiers. The Nyx16 script emits only allowlisted information.
+## 4. Interpreting results
 
-## 3. Read the result
+- `mode=NORMAL`: connected and paired, ProductType, OS version, build, board and possibly baseband are read.
+- `mode=USB_VISIBLE_NOT_PAIRED`: device visible but not accessible with current pairing, no state changes.
+- `mode=RECOVERY_OR_DFU`: limited safe metadata query; no exploit is attempted.
+- `mode=MULTIPLE_DEVICES`: selection refused to avoid reporting the wrong iPhone.
+- `version_relationship=TARGET_OLDER_THAN_INSTALLED`: describes only version ordering, not restore ability.
 
-- `mode=NORMAL`: device is recognized and paired over USB; product, iOS version, build and board can be compared.
-- `mode=USB_VISIBLE_NOT_PAIRED`: unlock and trust the connected iPhone; nothing is changed.
-- `mode=RECOVERY_OR_DFU`: iBoot diagnostic query only; **no commands are sent to modify the device**.
-- `mode=MULTIPLE_DEVICES`: disconnect other iPhones; script refuses to guess which to inspect.
-- `mode=NOT_DETECTED`: review the USB cable and tool installation.
+All reports retain `apple_signing_status=NOT_CHECKED`, `sep_baseband_compatibility=UNKNOWN`, `unsigned_downgrade=NOT_DEMONSTRATED`, and `device_modified=false`.
 
-Expected iPhone 12 target values from the iOS 26.1 manifest:
-- ProductType: `iPhone13,2`
-- Target iOS: `26.1` / build `23B85`
-- Manifest boards observed: `d53gap`, `d53pap`
-- Manifest SHA256: `b756fdf237c0bd7893e280447947b6b385b36b3e8eaae372980edc3c2c054774`
-
-`version_relationship=TARGET_OLDER_THAN_INSTALLED` means this would be a downgrade request, **not** that the phone can be downgraded.
-
-`apple_signing_status=NOT_CHECKED`, `sep_baseband_compatibility=UNKNOWN`, and `unsigned_downgrade=NOT_DEMONSTRATED` remain unchanged regardless of USB probe success.
-
-## 4. Scope
-
-This step can confirm physical device model and currently installed firmware. It cannot verify the device's ability to boot older firmware or defeat Apple's restore authorization. Connecting an iPhone to a Mac alone does not change Secure Boot or the A14 hardware trust chain.
-
-**If the iPhone is in Activation Lock or MDM enrollment, this script does not change it.**
+Nyx16 avoids saving or printing UDID, ECID, serial, and nonce. Share only the sanitized output of `tools/mac_probe.py`, not raw `ideviceinfo` or `irecovery` logs.

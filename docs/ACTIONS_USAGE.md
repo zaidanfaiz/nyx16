@@ -2,20 +2,20 @@
 
 Nyx16 runs entirely on GitHub-hosted runners. You do not need to download IPSWs, install anything on macOS, or connect an iPhone.
 
-## Fastest path: iPhone 12, iOS 26.1
+## Fastest path: iPhone 11, iOS 26.1
 
 1. Open [Nyx16 Firmware Research](https://github.com/zaidanfaiz/nyx16/actions/workflows/research.yml).
 2. Choose **Run workflow**, branch `main`.
-3. Keep `firmware_target` set to **iphone12-ios26.1** (default).
+3. Keep `firmware_target` set to **iphone11-ios26.1** (default).
 4. Leave `ipsw_url` and `manifest_url` empty, then press **Run workflow**.
 5. Open the completed run, read **Summary**, and download `nyx16-research-reports-...` from **Artifacts**.
 
 The preset points to a public Apple CDN firmware:
 - Model: iPhone 12 (`iPhone13,2`), A14
 - iOS version: `26.1`, build `23B85`
-- File: `iPhone13,2,iPhone13,3_26.1_23B85_Restore.ipsw`
-- Source reference: https://ipsw.me/download/iPhone13%2C2/23B85/
-- Published full-file SHA256: `23d19d631c47ccc008bdc28df6d93fdbc7975ceed7afa6c87885438e0a19e5cc` (**not verified** by partial download)
+- File: `iPhone12,1_26.1_23B85_Restore.ipsw`
+- Source reference: https://ipsw.me/download/iPhone12%2C1/23B85/
+- Published full-file SHA256: `0dc182a5fc747f8a634526c9f11bf10c0d2db2b64f959848e2d0eee6a3cfa084` (**not verified** by partial download)
 - Signing status reported by the catalog: **unsigned**. Nyx16 itself makes **no Apple signing request**.
 
 Nyx16 uses HTTP `Range` requests to read only sections needed for the ZIP central directory and root `BuildManifest.plist`. It requests no more than 64 MiB total and refuses HTTP 200 full-file responses. If Apple stops accepting byte ranges, the workflow **fails clearly rather than downloading the 10.1 GB firmware**.
@@ -24,12 +24,12 @@ Nyx16 uses HTTP `Range` requests to read only sections needed for the ZIP centra
 
 | `firmware_target` | What to enter |
 | --- | --- |
-| `iphone12-ios26.1` | Nothing else; predefined Apple CDN IPSW |
+| `iphone11-ios26.1` | Nothing else; predefined Apple CDN iPhone 11 IPSW (default) |\n| `iphone12-ios26.1` | Nothing else; predefined Apple CDN iPhone 12 IPSW |
 | `custom-ipsw-url` | `ipsw_url`: direct HTTPS `updates.cdn-apple.com/*.ipsw` URL |
 | `public-manifest-url` | `manifest_url`: raw `BuildManifest.plist` URL on GitHub raw or gist |
 | `baseline` | Nothing; no remote firmware input |
 
-Pushes to `main` and pull requests that affect code or evidence also run the iPhone 12 preset as an integration test, so the network-based extraction is tested in GitHub Actions. On manual dispatch, select a different mode to disable this.
+Pushes to `main` and pull requests that affect code or evidence also run the iPhone 11 preset as an integration test, so the network-based extraction is tested in GitHub Actions. On manual dispatch, select a different mode to disable this.
 
 ## Artifacts and interpretation
 
