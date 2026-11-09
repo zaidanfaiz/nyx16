@@ -16,6 +16,8 @@ on:
       - 'src/nyx16/compare.py'
       - 'tools/partial_ipsw.py'
       - 'tests/test_compare.py'
+      - 'tests/test_ipsw_inventory.py'
+      - 'tools/ipsw_inventory.py'
       - '.github/workflows/iphone11-compare.yml'
 
 permissions:
@@ -83,7 +85,21 @@ jobs:
             --compare reports/ios27_2_archive_inventory.json reports/ios26_1_archive_inventory.json \
             --out reports/iphone11_ipsw_archive_comparison.json
       - name: Add findings to run summary
-        run: cat reports/IPHONE11_COMPARISON_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          cat reports/IPHONE11_COMPARISON_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+          echo "## IPSW ZIP directory inventory" >> "$GITHUB_STEP_SUMMARY"
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          data = json.loads(Path("reports/iphone11_ipsw_archive_comparison.json").read_text())
+          print(f"- Current archive entries: {data['current_zip_entries']}")
+          print(f"- Target archive entries: {data['target_zip_entries']}")
+          print("- ZIP component metadata statuses:")
+          for label, count in sorted(data['comparison_counts'].items()):
+              print(f"  - {label}: {count}")
+          print("- Firmware binaries downloaded: **NO**")
+          print("- SEP/baseband version compatibility: **UNKNOWN**")
+          PY
       - name: Upload report (not IPSW or plist files)
         uses: actions/upload-artifact@v4
         with:
