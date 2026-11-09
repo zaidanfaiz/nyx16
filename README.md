@@ -81,6 +81,16 @@ python3 tools/j4_parser_lab.py --seed 1627 --cases 1500 --out reports/j4_owned_p
 
 This tool does **not** scan iOS, fuzz Apple parsers, exploit a kernel, or make the iPhone jailbroken. Its purpose is to establish a reliable local experiment workflow before interpreting any claimed vulnerability.
 
+## J4B — WebKit fixed patch study (offline)
+
+Following J4A's 1,500 project-owned parser tests, J4B now examines a **real, publicly fixed WebKit bug**: [WebKit Bugzilla 304140](https://bugs.webkit.org/show_bug.cgi?id=304140), fixed upstream on 7 January 2026 by adding INT_MAX length-boundary checks before libxml2 calls. The independent Nyx16 exercise is **nine logical integer boundary tests** with a JSON evidence report, **not** a WebKit exploit reproduction, iOS vulnerability finding, or iPhone scan.
+
+Run locally:
+
+    python3 tools/j4b_webkit_boundary_study.py --out reports/j4b_webkit_boundary.json
+
+Read the [patch case study, source links and limitations](docs/J4B_WEBKIT_PATCH_STUDY.md). Nyx16Lab remains **one on-device Run Full Diagnostics button** for J1–J3; J4B does not change the app.
+
 ## Running existing diagnostic tools on a Mac
 
 With an iPhone connected and trusted in normal mode:
