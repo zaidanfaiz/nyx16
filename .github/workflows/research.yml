@@ -1,0 +1,70 @@
+name: Nyx16 Firmware Research
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tools/**'
+      - 'evidence/**'
+      - 'tests/**'
+      - 'docs/**'
+      - '.github/workflows/research.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tools/**'
+      - 'evidence/**'
+      - 'tests/**'
+      - 'docs/**'
+      - '.github/workflows/research.yml'
+  workflow_dispatch:
+    inputs:
+      manifest_url:
+        description: 'Optional public raw GitHub BuildManifest.plist URL (not a full IPSW)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nyx16-research-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  report:
+    name: Generate evidence-based research reports
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Nyx16
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Run regression tests
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -v
+      - name: Retrieve optional public BuildManifest
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.manifest_url != '' }}
+        env:
+          MANIFEST_URL: ${{ inputs.manifest_url }}
+        run: python tools/fetch_manifest.py --url "$MANIFEST_URL" --out evidence/manifests/from-dispatch.plist
+      - name: Build manifest matrix and Secure Boot evidence reports
+        env:
+          PYTHONPATH: src
+        run: python -m nyx16.research --manifests evidence/manifests --evidence evidence/secure_boot_sources.json --out reports
+      - name: Publish summary to GitHub Actions
+        run: cat reports/RESEARCH_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload reports as downloadable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nyx16-research-reports-${{ github.run_number }}
+          path: reports/
+          if-no-files-found: error
+          retention-days: 21
