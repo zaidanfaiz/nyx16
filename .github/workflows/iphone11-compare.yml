@@ -7,6 +7,8 @@ on:
       - 'src/nyx16/compare.py'
       - 'tools/partial_ipsw.py'
       - 'tests/test_compare.py'
+      - 'tests/test_ipsw_inventory.py'
+      - 'tools/ipsw_inventory.py'
       - '.github/workflows/iphone11-compare.yml'
   push:
     branches: [main]
@@ -63,6 +65,23 @@ jobs:
             --product iPhone12,1 \
             --board N104AP \
             --out reports
+      - name: Index iOS 27.2 archive components via bounded HTTP ranges
+        run: |
+          python tools/ipsw_inventory.py \
+            --preset iphone11-ios27.2 \
+            --expected-manifest workspace/ios27_2/BuildManifest.plist \
+            --out reports/ios27_2_archive_inventory.json
+      - name: Index iOS 26.1 archive components via bounded HTTP ranges
+        run: |
+          python tools/ipsw_inventory.py \
+            --preset iphone11-ios26.1 \
+            --expected-manifest workspace/ios26_1/BuildManifest.plist \
+            --out reports/ios26_1_archive_inventory.json
+      - name: Compare actual IPSW ZIP component filenames and sizes
+        run: |
+          python tools/ipsw_inventory.py \
+            --compare reports/ios27_2_archive_inventory.json reports/ios26_1_archive_inventory.json \
+            --out reports/iphone11_ipsw_archive_comparison.json
       - name: Add findings to run summary
         run: cat reports/IPHONE11_COMPARISON_SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload report (not IPSW or plist files)
