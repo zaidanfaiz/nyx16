@@ -14,6 +14,7 @@ CHIPS = (
     Chip("A14", "T8101", 0x8101),
     Chip("A15", "T8110", 0x8110),
     Chip("A16", "T8120", 0x8120),
+    Chip("A17 Pro", "T8130", 0x8130),
 )
 
 def list_chips():

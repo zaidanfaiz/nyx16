@@ -38,7 +38,12 @@ class ResearchTests(unittest.TestCase):
         self.assertEqual(result["manifest_count"], 0)
         self.assertEqual(result["unsigned_downgrade"], "NOT_DEMONSTRATED")
         self.assertIn("No real BuildManifest", (self.out / "RESEARCH_SUMMARY.md").read_text())
-        self.assertEqual(len(list(csv.DictReader((self.out / "soc_research_matrix.csv").open()))), 5)
+        self.assertEqual(len(list(csv.DictReader((self.out / "soc_research_matrix.csv").open()))), 6)
+
+    def test_a17_pro_reported_as_research_only(self):
+        result = build_reports(self.root, SOURCES, self.out)
+        self.assertIn("A17 Pro", result["soc_families"])
+        self.assertEqual(result["apple_signing_status"], "NOT_CHECKED")
 
     def test_manifest_generates_identity_row_without_guessing_pairing(self):
         self.save()

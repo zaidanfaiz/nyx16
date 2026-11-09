@@ -1,4 +1,4 @@
-"""Nyx16 macOS USB identification (read-only), supporting A12–A16 iPhones.
+"""Nyx16 macOS USB identification (read-only), supporting A12–A17 Pro iPhones.
 
 No device restore, pairing change, Activation Lock access, exploit, or signing
 server interaction. UDID / ECID / serial / nonces are intentionally excluded.
@@ -110,7 +110,7 @@ def read_report_archive(filename, product_type=None):
     }
 
 
-def probe(target_ios="26.1"):
+def probe(target_ios=None):
     result = {
         "tool": "nyx16-mac-probe",
         "execution_host": platform.system(),
@@ -121,7 +121,11 @@ def probe(target_ios="26.1"):
             "status": "UNKNOWN", "device": "UNKNOWN", "chip_family": "UNKNOWN",
         },
         "target_ios_version": target_ios,
-        "version_relationship": "UNKNOWN",
+        "version_relationship": "NOT_REQUESTED" if target_ios is None else "UNKNOWN",
+        "research_objective": "FULL_JAILBREAK_A12_A17",
+        "jailbreak_status": "NOT_DEMONSTRATED",
+        "privileged_device_file_access": "NOT_DEMONSTRATED",
+        "dfu_code_execution": "NOT_DEMONSTRATED",
         "apple_signing_status": "NOT_CHECKED",
         "sep_baseband_compatibility": "UNKNOWN",
         "unsigned_downgrade": "NOT_DEMONSTRATED",
@@ -158,7 +162,8 @@ def probe(target_ios="26.1"):
         result["device_identification"] = identify_product(
             observed.get("ProductType"), observed.get("HardwareModel")
         )
-        result["version_relationship"] = compare_versions(observed.get("ProductVersion"), target_ios)
+        if target_ios is not None:
+            result["version_relationship"] = compare_versions(observed.get("ProductVersion"), target_ios)
         result["note"] = "Hardware identification only; no unsigned firmware restore was attempted."
         return result
     if shutil.which("irecovery"):
@@ -178,12 +183,12 @@ def probe(target_ios="26.1"):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Nyx16 read-only macOS iPhone A12-A16 probe")
-    parser.add_argument("--target-ios", default="26.1", help="Reference version for comparison, not a restore request")
+    parser = argparse.ArgumentParser(description="Nyx16 A12-A17 Pro device identification (jailbreak research)")
+    parser.add_argument("--target-ios", default=None, help="Optional legacy firmware comparison reference; not required for jailbreak research")
     parser.add_argument("--report-zip", help="Optional Nyx16 GitHub Actions report ZIP")
     parser.add_argument("--output", help="Optional local JSON file with no serial, UDID, ECID or nonce")
     args = parser.parse_args(argv)
-    if not re.fullmatch(r"\d+(?:\.\d+){0,2}", args.target_ios):
+    if args.target_ios is not None and not re.fullmatch(r"\d+(?:\.\d+){0,2}", args.target_ios):
         parser.error("--target-ios must be an iOS version such as 26.1")
     result = probe(target_ios=args.target_ios)
     if args.report_zip:

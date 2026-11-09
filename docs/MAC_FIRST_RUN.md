@@ -1,7 +1,7 @@
-# Nyx16 macOS Experiment 1 — A12–A16 iPhone Auto-Detection
+# Nyx16 macOS Experiment 1 — A12–A17 Pro iPhone Auto-Detection
 
 **Actual hardware for this experiment: iPhone 11 (A13, iPhone12,1).**
-The same read-only macOS probe supports device identity lookup for iPhone XR/XS, 11, 12, 13, 14 and their variants.
+The same read-only macOS probe supports device identification for iPhone XR/XS through iPhone 15 Pro variants; identification is not jailbreak support.
 
 No jailbreak, Activation Lock modification, iBoot patch, flash, restore, unsigned downgrade, or signing bypass occurs.
 
@@ -27,7 +27,7 @@ mkdir -p ~/Development
 cd ~/Development
 git clone https://github.com/zaidanfaiz/nyx16.git
 cd nyx16
-python3 tools/mac_probe.py --target-ios 26.1
+python3 tools/mac_probe.py
 ```
 
 For an existing clone:
@@ -44,12 +44,14 @@ The script does **not** require specifying the iPhone model. It detects `Product
 - iPhone 13 = `iPhone14,5` / A15 / `D17AP`
 - iPhone 14 = `iPhone14,7` / A15 / `D27AP`
 - iPhone 14 Pro = `iPhone15,2` / A16 / `D73AP`
+- iPhone 15 Pro = `iPhone16,1` / A17 Pro / `D83AP`
+- iPhone 15 Pro Max = `iPhone16,2` / A17 Pro / `D84AP`
 
-This is a read-only hardware registry, **not** a list of proven exploitable devices.
+This is a read-only hardware registry, **not** a list of proven exploitable devices. The new project mission is jailbreak research, not unsigned downgrade; the old `--target-ios` option exists only for historical firmware report comparisons.
 
 If a device is only in Recovery/DFU, Nyx16 attempts `irecovery -q` and may identify only the A-series **chip family**, not the exact iPhone model.
 
-## 3. Firmware reports: do not mix different models
+## 3. Legacy firmware reports: do not mix different models
 
 To compare with a GitHub Actions report already downloaded to the Mac:
 

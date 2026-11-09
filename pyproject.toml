@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nyx16"
 version = "0.1.0"
-description = "Read-only iOS A12-A16 IPSW firmware metadata research toolkit"
+description = "Apple A12-A17 iPhone jailbreak research and read-only device/firmware analysis toolkit"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}

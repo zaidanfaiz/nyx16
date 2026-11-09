@@ -1,7 +1,7 @@
-"""Public hardware identification reference for A12–A16 era iPhone models.
+"""Public hardware identification reference for A12–A17 Pro iPhone models.
 
 Board identifiers are hardware labels, not firmware eligibility or exploit claims.
-Sources: https://ipsw.me/ and https://github.com/marcostolosa/shshshh
+Sources: https://ipsw.me/ and https://support.apple.com/id-id/111829
 """
 from __future__ import annotations
 
@@ -36,10 +36,14 @@ DEVICES = (
     Device("iPhone 14 Plus", "iPhone14,8", "A15", ("d28ap",)),
     Device("iPhone 14 Pro", "iPhone15,2", "A16", ("d73ap",)),
     Device("iPhone 14 Pro Max", "iPhone15,3", "A16", ("d74ap",)),
+    Device("iPhone 15", "iPhone15,4", "A16", ("d37ap",)),
+    Device("iPhone 15 Plus", "iPhone15,5", "A16", ("d38ap",)),
+    Device("iPhone 15 Pro", "iPhone16,1", "A17 Pro", ("d83ap",)),
+    Device("iPhone 15 Pro Max", "iPhone16,2", "A17 Pro", ("d84ap",)),
 )
 
 BY_PRODUCT = {d.product_type.casefold(): d for d in DEVICES}
-CHIP_BY_CPID = {0x8020: "A12", 0x8030: "A13", 0x8101: "A14", 0x8110: "A15", 0x8120: "A16"}
+CHIP_BY_CPID = {0x8020: "A12", 0x8030: "A13", 0x8101: "A14", 0x8110: "A15", 0x8120: "A16", 0x8130: "A17 Pro"}
 
 def identify_product(product_type: str | None, hardware_model: str | None = None):
     """Return a model label only for an explicitly recognized ProductType.
