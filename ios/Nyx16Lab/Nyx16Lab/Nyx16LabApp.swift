@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import UIKit
 import Darwin
 
 /// Deliberately limited to stock iOS application APIs.
