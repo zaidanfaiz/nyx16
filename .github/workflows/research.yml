@@ -24,8 +24,9 @@ on:
         description: 'Select a baseline or firmware input (iPhone 12 iOS 26.1 is the default)'
         type: choice
         required: true
-        default: iphone12-ios26.1
+        default: iphone11-ios26.1
         options:
+          - iphone11-ios26.1
           - iphone12-ios26.1
           - custom-ipsw-url
           - public-manifest-url
@@ -48,7 +49,7 @@ concurrency:
 
 jobs:
   report:
-    name: Research iPhone 12 iOS 26.1 firmware metadata
+    name: Research iPhone 11 and A12-A16 firmware metadata
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -65,9 +66,9 @@ jobs:
           PYTHONPATH: src
         run: python -m unittest discover -s tests -v
       - name: Read BuildManifest from Apple IPSW using bounded HTTP ranges
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.firmware_target == 'iphone12-ios26.1' || inputs.firmware_target == 'custom-ipsw-url' }}
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.firmware_target == 'iphone11-ios26.1' || inputs.firmware_target == 'iphone12-ios26.1' || inputs.firmware_target == 'custom-ipsw-url' }}
         env:
-          FIRMWARE_TARGET: ${{ github.event_name == 'workflow_dispatch' && inputs.firmware_target || 'iphone12-ios26.1' }}
+          FIRMWARE_TARGET: ${{ github.event_name == 'workflow_dispatch' && inputs.firmware_target || 'iphone11-ios26.1' }}
           CUSTOM_IPSW_URL: ${{ inputs.ipsw_url }}
         run: |
           python tools/partial_ipsw.py \
