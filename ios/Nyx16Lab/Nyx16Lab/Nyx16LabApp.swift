@@ -9,6 +9,33 @@ import Darwin
 final class LabViewModel: ObservableObject {
     @Published var report = "No test has run. Tap Run Sandbox Test to collect local evidence."
     @Published var securityReport = "J2 has not run. Tap Run J2 Diagnostics to inspect only this app and its own files."
+    @Published var clipboardNotice = ""
+
+    /// Exports only reports the user actually ran. Never copies placeholder text.
+    var copyableReport: String {
+        var sections: [String] = []
+        if securityReport.hasPrefix("NYX16 J2") {
+            sections.append(securityReport)
+        }
+        if report.hasPrefix("NYX16 ON-DEVICE LAB") {
+            sections.append(report)
+        }
+        return sections.joined(separator: "\n\n-----\n\n")
+    }
+
+    var hasCopyableReport: Bool {
+        !copyableReport.isEmpty
+    }
+
+    func copyReport() {
+        guard hasCopyableReport else {
+            clipboardNotice = "Run J2 Diagnostics or Sandbox Test first."
+            return
+        }
+        UIPasteboard.general.string = copyableReport
+        clipboardNotice = "Copied on iPhone. On Mac press ⌘V (Universal Clipboard requires Handoff)."
+    }
+
 
     func runSandboxTest() {
         let fileManager = FileManager.default
@@ -202,6 +229,31 @@ struct ContentView: View {
                     }
                     .buttonStyle(.bordered)
                     .accessibilityIdentifier("runJ2Diagnostics")
+
+                    HStack(spacing: 12) {
+                        Button {
+                            model.copyReport()
+                        } label: {
+                            Label("Copy Report", systemImage: "doc.on.doc")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(!model.hasCopyableReport)
+                        .accessibilityIdentifier("copySecurityReport")
+
+                        ShareLink(item: model.copyableReport) {
+                            Label("AirDrop / Share", systemImage: "square.and.arrow.up")
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(!model.hasCopyableReport)
+                        .accessibilityIdentifier("shareSecurityReport")
+                    }
+
+                    if !model.clipboardNotice.isEmpty {
+                        Text(model.clipboardNotice)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("clipboardCopyStatus")
+                    }
 
                     Text(model.securityReport)
                         .font(.system(.footnote, design: .monospaced))
