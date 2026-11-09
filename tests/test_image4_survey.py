@@ -94,7 +94,7 @@ class Image4SurveyTests(unittest.TestCase):
 
     def test_long_opaque_sep_description_is_valid_metadata(self):
         blob = der(0x30, ia5("IM4P") + ia5("sepi")
-                   + der(0x16, b"SEP" + b"\\x01" * 1243)
+                   + der(0x16, b"SEP" + bytes([1]) * 1243)
                    + der(0x04, b"payload"))
         record = parse_image4_container(blob)
         self.assertEqual(record["type_code"], "sepi")
